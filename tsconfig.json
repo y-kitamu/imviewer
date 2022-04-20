@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "outDir": "./dist/",
+    "module": "umd",
+    "target": "es6",
+    "jsx": "react-jsx",
+    "sourceMap": true
+  }
+}

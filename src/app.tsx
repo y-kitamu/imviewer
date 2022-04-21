@@ -1,8 +1,19 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
+import { MenuDrawer } from "./components/menu_drawer";
+import { ImageCanvas } from "./components/image_canvas";
+import { OpenMenuButton } from "./components/open_menu_button";
 
 const App = () => {
-  return <h1>"Hello from React"</h1>;
+  const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
+
+  return (
+    <>
+      <ImageCanvas />
+      <OpenMenuButton setIsOpen={setIsMenuOpen} />
+      <MenuDrawer isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
+    </>
+  );
 };
 
 const container = document.getElementById("root");

@@ -1,14 +1,20 @@
 {
   "compilerOptions": {
-    "alwaysStrict": true,
-    "exactOptionalPropertyTypes": true,
+    "allowJs": false,
+    "module": "es6",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
     "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "strict": true,
-    "outDir": "./dist/",
-    "module": "umd",
-    "target": "es6",
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "sourceMap": true
-  }
+    "strict": true,
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "include": ["src/**/*"]
 }

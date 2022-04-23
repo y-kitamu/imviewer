@@ -1,12 +1,17 @@
 const React = require("react");
-import { Fab } from "@mui/material";
+import { Button } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { OpenMenuButtonProps } from "../types/props";
 
 export const OpenMenuButton = (props: OpenMenuButtonProps) => {
   const { setIsOpen } = props;
   return (
-    <Fab variant="extended" onClick={() => setIsOpen(true)}>
-      MENU
-    </Fab>
+    <Button
+      variant="outlined"
+      onClick={() => setIsOpen(true)}
+      sx={{ position: "absolute", left: -5, top: 0 }}
+    >
+      <MenuIcon />
+    </Button>
   );
 };

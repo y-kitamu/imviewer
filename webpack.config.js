@@ -11,6 +11,10 @@ module.exports = {
         use: "babel-loader",
         exclude: /node_modules/,
       },
+      {
+        test: /\.(frag|vert)$/,
+        type: "asset/source",
+      },
     ],
   },
   resolve: {

@@ -6,12 +6,18 @@ import { OpenMenuButton } from "./components/open_menu_button";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
+  const [currentImage, setCurrentImage] =
+    React.useState<HTMLImageElement | null>(null);
 
   return (
     <>
-      <ImageCanvas />
+      <ImageCanvas image={currentImage} />
       <OpenMenuButton setIsOpen={setIsMenuOpen} />
-      <MenuDrawer isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
+      <MenuDrawer
+        isOpen={isMenuOpen}
+        setIsOpen={setIsMenuOpen}
+        setCurrentImage={setCurrentImage}
+      />
     </>
   );
 };

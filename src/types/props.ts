@@ -1,11 +1,14 @@
+import { ImageContext } from "./gl";
+import { Matrix4 } from "three";
+
 export type ImageCanvasProps = {
-  image: HTMLImageElement | null;
+  image: ImageContext | null;
 };
 
 export type MenuDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  setCurrentImage: (val: HTMLImageElement) => void;
+  setCurrentImage: (val: ImageContext) => void;
 };
 
 export type OpenMenuButtonProps = {
@@ -16,4 +19,8 @@ export type LoadFileButtonProps = {
   text: string;
   accept: string;
   onChange?: (elem: HTMLInputElement | null) => void;
+};
+
+export type ScaleSliderProps = {
+  mvpMat: Matrix4 | null;
 };

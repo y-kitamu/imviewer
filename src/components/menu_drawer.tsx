@@ -1,8 +1,14 @@
 const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
+import { Matrix4 } from "three";
+
+import { SimpleImageShader } from "../gl/simple_image_shader";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
 
+/**
+ *
+ */
 export const MenuDrawer = (props: MenuDrawerProps) => {
   const { isOpen, setIsOpen, setCurrentImage } = props;
   const toggleDrawer =
@@ -24,7 +30,6 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
   };
 
   const loadImage = async (file: File) => {
-    console.log("Load image");
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
@@ -32,7 +37,11 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
         const image = new Image();
         image.src = reader.result;
         image.onload = () => {
-          setCurrentImage(image);
+          setCurrentImage({
+            image,
+            shader: SimpleImageShader,
+            mvpMat: new Matrix4(),
+          });
         };
       }
     };

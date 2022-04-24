@@ -8,6 +8,7 @@ import { ScaleSlider } from "./components/scale_slider";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
+  const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
   const [currentImageData, setCurrentImageData] =
     React.useState<ImageContext | null>(null);
   const rootRef = React.useRef<HTMLDivElement>(null);

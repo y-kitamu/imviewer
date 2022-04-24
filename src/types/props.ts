@@ -24,3 +24,9 @@ export type LoadFileButtonProps = {
 export type ScaleSliderProps = {
   mvpMat: Matrix4 | null;
 };
+
+export type SettingDrawerProps = {
+  isOpen: boolean;
+  setIsOpen: (val: boolean) => void;
+  images: ImageContext[];
+};

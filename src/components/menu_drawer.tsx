@@ -2,6 +2,7 @@ const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
 import { Matrix4 } from "three";
 
+import { getBasename } from "../utility";
 import { SimpleImageShader } from "../gl/simple_image_shader";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
@@ -11,17 +12,6 @@ import { LoadFileButton } from "./load_file_button";
  */
 export const MenuDrawer = (props: MenuDrawerProps) => {
   const { isOpen, setIsOpen, setCurrentImage } = props;
-  const toggleDrawer =
-    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event.type === "key down" &&
-        ((event as React.KeyboardEvent).key === "Tab" ||
-          (event as React.KeyboardEvent).key === "Shift")
-      ) {
-        return;
-      }
-      setIsOpen(open);
-    };
 
   const loadJson = async (file: File) => {
     const json_text = await file.text();
@@ -38,6 +28,7 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
         image.src = reader.result;
         image.onload = () => {
           setCurrentImage({
+            filename: getBasename(file.name),
             image,
             shader: SimpleImageShader,
             mvpMat: new Matrix4(),
@@ -85,7 +76,13 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
   );
 
   return (
-    <Drawer anchor="left" open={isOpen} onClose={toggleDrawer(false)}>
+    <Drawer
+      anchor="left"
+      open={isOpen}
+      onClose={(_) => {
+        setIsOpen(false);
+      }}
+    >
       {menuList}
     </Drawer>
   );

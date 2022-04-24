@@ -1,6 +1,7 @@
 import { Matrix4 } from "three";
 
 export type ImageContext = {
+  filename: string;
   image: HTMLImageElement;
   shader: Shader;
   mvpMat: Matrix4;

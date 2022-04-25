@@ -4,18 +4,19 @@ import { useEffect, useRef } from "react";
 import { ImageCanvasProps } from "../types/props";
 
 export const ImageCanvas = (props: ImageCanvasProps) => {
-  const { image } = props;
+  const { images, currentShader } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasElem = <canvas ref={canvasRef}></canvas>;
 
   useEffect(() => {
-    if (image != null && canvasRef.current != null) {
+    const targetImages = images.filter((data) => data.isDrawing);
+    if (targetImages.length > 0 && canvasRef.current != null) {
       const canvas = canvasRef.current;
       canvas.setAttribute("width", `${window.innerWidth}`);
       canvas.setAttribute("height", `${window.innerHeight}`);
-      drawGL(canvas, image);
+      drawGL(canvas, targetImages, currentShader);
     }
-  }, [image]);
+  }, [images]);
 
   return canvasElem;
 };

@@ -1,13 +1,21 @@
-import { ImageContext } from "../types/gl";
+import { ImageContext, Shader } from "../types/gl";
+import { SimpleImageShader } from "./simple_image_shader";
 
-export const drawGL = (canvas: HTMLCanvasElement, image_data: ImageContext) => {
-  const { image, shader, mvpMat } = image_data;
+export const SHADERS = {
+  simple_image: SimpleImageShader,
+};
+
+export const drawGL = (
+  canvas: HTMLCanvasElement,
+  imageData: ImageContext[],
+  shader: Shader
+) => {
+  const { image, mvpMat } = imageData[0];
   const gl = canvas?.getContext("webgl2");
   if (!gl) {
     console.log("WebGL unavailable");
     return;
   }
-
   // Shader program
   const program = compileShader(gl, shader.shaderPath);
   if (program == undefined) {
@@ -53,6 +61,10 @@ export const drawGL = (canvas: HTMLCanvasElement, image_data: ImageContext) => {
     shader.arrayBuffer.unbind(gl);
     gl.bindTexture(gl.TEXTURE_2D, null);
     gl.useProgram(null);
+
+    if (!imageData[0].isDrawing) {
+      return;
+    }
 
     requestAnimationFrame(render);
   };

@@ -1,15 +1,15 @@
 const React = require("react");
 import { Button } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { OpenMenuButtonProps } from "../types/props";
+import { OpenDrawerButtonProps } from "../types/props";
 
-export const OpenMenuButton = (props: OpenMenuButtonProps) => {
-  const { setIsOpen } = props;
+export const OpenDrawerButton = (props: OpenDrawerButtonProps) => {
+  const { setIsOpen, left = -5, top = 0 } = props;
   return (
     <Button
       variant="outlined"
       onClick={() => setIsOpen(true)}
-      sx={{ position: "absolute", left: -5, top: 0 }}
+      sx={{ position: "absolute", left, top }}
     >
       <MenuIcon />
     </Button>

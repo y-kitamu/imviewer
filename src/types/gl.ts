@@ -3,8 +3,8 @@ import { Matrix4 } from "three";
 export type ImageContext = {
   filename: string;
   image: HTMLImageElement;
-  shader: Shader;
   mvpMat: Matrix4;
+  isDrawing: boolean;
 };
 
 export type Shader = {

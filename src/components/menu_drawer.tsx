@@ -3,15 +3,15 @@ import { Drawer, List, ListItem } from "@mui/material";
 import { Matrix4 } from "three";
 
 import { getBasename } from "../utility";
-import { SimpleImageShader } from "../gl/simple_image_shader";
 import { MenuDrawerProps } from "../types/props";
+import { ImageContext } from "../types/gl";
 import { LoadFileButton } from "./load_file_button";
 
 /**
  *
  */
 export const MenuDrawer = (props: MenuDrawerProps) => {
-  const { isOpen, setIsOpen, setCurrentImage } = props;
+  const { isOpen, setIsOpen, imageDatas, setImageDatas } = props;
 
   const loadJson = async (file: File) => {
     const json_text = await file.text();
@@ -24,15 +24,23 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
     reader.readAsDataURL(file);
     reader.onloadend = () => {
       if (typeof reader.result === "string") {
+        const showing = imageDatas.filter((data) => data.isDrawing);
+        if (showing.length == 1) {
+          showing[0].isDrawing = false;
+        }
         const image = new Image();
         image.src = reader.result;
         image.onload = () => {
-          setCurrentImage({
-            filename: getBasename(file.name),
-            image,
-            shader: SimpleImageShader,
-            mvpMat: new Matrix4(),
-          });
+          setImageDatas(
+            imageDatas.concat([
+              {
+                filename: getBasename(file.name),
+                image,
+                mvpMat: new Matrix4(),
+                isDrawing: true,
+              },
+            ])
+          );
         };
       }
     };

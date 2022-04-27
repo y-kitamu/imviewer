@@ -4,6 +4,7 @@ import { Shader } from "./shader";
 export type WidgetType = "image" | "point" | "line" | "arrow";
 
 export type WidgetsBase = {
+  id: number; // hash id.
   widgetType: WidgetType;
   shader: Shader;
   renderMode: number; // ex. gl.TRIANGLE_STRIP

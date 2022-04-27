@@ -1,5 +1,5 @@
 import { CanvasWindow } from "../types/window";
-import { Shader } from "../types/shader";
+import { Drawable } from "../types/drawable";
 import { SimpleImageShader } from "./simple_image_shader";
 
 export const SHADERS = {
@@ -16,47 +16,54 @@ export const drawGL = (
     return;
   }
 
-  const Drawables = canvasWindow.subWindows
-    .map((subWindow) =>
-      subWindow.widgets.map((widget) => {
-        const program = compileShader(gl, widget.shader.shaderPath);
-        if (program == undefined) {
-          return;
-        }
-        const abuf = widget.shader.arrayBuffer;
-        return {
-          widget: widget,
-          program: program,
-          buffers: abuf.prepareBuffer(gl, widget),
-          textures: abuf.prepareTexture ? abuf.prepareBuffer(gl, widget) : [],
-          ubuffers: widget.shader.uniformBuffer.prepareBuffer(
-            gl,
-            program,
-            widget
-          ),
-        };
-      })
-    )
-    .flat();
+  const windowsDrawables: (Drawable | undefined)[][][] =
+    canvasWindow.widgets.map((rowWidgets) =>
+      rowWidgets.map((widgets) =>
+        widgets.map((widget) => {
+          const program = compileShader(gl, widget.shader.shaderPath);
+          if (program == undefined) {
+            return;
+          }
+          const abuf = widget.shader.arrayBuffer;
+          return {
+            widget: widget,
+            program: program,
+            buffers: abuf.prepareBuffer(gl, widget),
+            textures: abuf.prepareTexture
+              ? abuf.prepareTexture(gl, widget)
+              : [],
+            ubuffers: widget.shader.uniformBuffer.prepareBuffer(
+              gl,
+              program,
+              widget
+            ),
+          };
+        })
+      )
+    );
 
   const render = () => {
     gl.clearColor(0, 0, 0, 0);
 
-    Drawables.forEach((drawable) => {
-      if (drawable == undefined) {
-        return;
-      }
-      const { widget, program, buffers, textures, ubuffers } = drawable;
-      // bind buffers
-      widget.shader.arrayBuffer.drawBuffer(gl, buffers, textures);
-      widget.shader.uniformBuffer.updateBuffer(gl, widget, ubuffers);
-      widget.shader.uniformBuffer.drawBuffer(gl, ubuffers);
-      gl.useProgram(program);
-      // draw
-      gl.drawArrays(widget.renderMode, 0, widget.numVertex);
-      // post process
-      widget.shader.arrayBuffer.unbind(gl);
-      gl.useProgram(null);
+    windowsDrawables.forEach((rowDrawables) => {
+      rowDrawables.forEach((drawables) => {
+        drawables.forEach((drawable) => {
+          if (drawable == undefined) {
+            return;
+          }
+          const { widget, program, buffers, textures, ubuffers } = drawable;
+          // bind buffers
+          widget.shader.arrayBuffer.drawBuffer(gl, buffers, textures);
+          widget.shader.uniformBuffer.updateBuffer(gl, widget, ubuffers);
+          widget.shader.uniformBuffer.drawBuffer(gl, ubuffers);
+          gl.useProgram(program);
+          // draw
+          gl.drawArrays(widget.renderMode, 0, widget.numVertex);
+          // post process
+          widget.shader.arrayBuffer.unbind(gl);
+          gl.useProgram(null);
+        });
+      });
     });
     requestAnimationFrame(render);
   };

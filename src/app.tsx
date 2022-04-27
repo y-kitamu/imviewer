@@ -1,24 +1,20 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { Shader } from "./types/shader";
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
 import { ScaleSlider } from "./components/scale_slider";
-import { SimpleImageShader } from "./gl/simple_image_shader";
 import { SettingDrawer } from "./components/setting_drawer";
 import { CanvasWindow } from "./types/window";
+import { Drawable } from "./types/drawable";
 
 const defaultCanvasWindow: CanvasWindow = {
-  subWindows: [
-    {
-      left: 0.0,
-      top: 0.0,
-      width: 1.0,
-      height: 1.0,
-      widgets: [],
-    },
-  ],
+  onFocus: { row: 1, col: 1 },
+  nrows: 1,
+  ncols: 1,
+  rowSizes: [1.0],
+  colSizes: [1.0],
+  widgets: [[[]]],
 };
 
 const App = () => {
@@ -26,10 +22,13 @@ const App = () => {
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
   const [canvasWindow, setCanvasWindow] =
     React.useState<CanvasWindow>(defaultCanvasWindow);
-  const [currentShader, setCurrentShader] =
-    React.useState<Shader>(SimpleImageShader);
-  const rootRef = React.useRef<HTMLDivElement>(null);
+  const refDrawables = React.useRef<(Drawable | undefined)[][][]>([[[]]]);
   const isMouseDown = React.useRef<boolean>(false);
+
+  const insertColumn = (colIndex: number) => {};
+  const insertRow = (rowIndex: number) => {};
+  const deleteColumn = (colIndex: number) => {};
+  const deleteRow = (rowIndex: number) => {};
 
   const handleWheel = (e: React.WheelEvent) => {
     imageDatas.map((data) => {
@@ -81,7 +80,6 @@ const App = () => {
 
   return (
     <div
-      ref={rootRef}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}

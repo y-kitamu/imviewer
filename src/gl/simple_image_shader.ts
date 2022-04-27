@@ -1,5 +1,6 @@
 import { FLOAT_BYTE_SIZE, SIMPLE_IMAGE_SHADER } from "../constants";
-import { Shader, UniformBuffer, VertexArrayBuffer } from "../types/gl";
+import { Shader, UniformBuffer, VertexArrayBuffer } from "../types/shader";
+import { ImageWidget, WidgetsBase } from "../types/widgets";
 
 const updateUniformBufferImpl = (
   gl: WebGL2RenderingContext,
@@ -14,9 +15,13 @@ const updateUniformBufferImpl = (
 const SimpleImageArrayBuffer: VertexArrayBuffer = {
   prepareBuffer: (
     gl: WebGL2RenderingContext,
-    aspectRatio?: number
+    widget: WidgetsBase
   ): WebGLBuffer[] => {
-    const aspect = aspectRatio ? aspectRatio : 1.0;
+    const image = widget as ImageWidget;
+    if (image.image == null) {
+      return [];
+    }
+    const aspect = image.image.width / image.image.height;
     let dx = 0.5;
     let dy = 0.5;
     if (aspect < 1.0) {
@@ -26,8 +31,8 @@ const SimpleImageArrayBuffer: VertexArrayBuffer = {
     }
 
     // Vertex Array buffer
-    // Flip upside down because OpenGL expect the first element of image-buffer correspond to lower-left
-    // and subsequent elements progressing left-to-right.
+    // Flip upside down because OpenGL expect the first element of image-buffer correspond to
+    // lower-left and subsequent elements progressing left-to-right.
     // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
     // prettier-ignore
     const vertex = [
@@ -47,24 +52,64 @@ const SimpleImageArrayBuffer: VertexArrayBuffer = {
     return [buffer];
   },
 
-  drawBuffer: (gl: WebGL2RenderingContext, buffers: WebGLBuffer[]) => {
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers[0]);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * FLOAT_BYTE_SIZE, 0);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(
-      1,
-      2,
-      gl.FLOAT,
-      false,
-      5 * FLOAT_BYTE_SIZE,
-      3 * FLOAT_BYTE_SIZE
+  prepareTexture: (gl: WebGL2RenderingContext, widget: WidgetsBase) => {
+    const image = widget as ImageWidget;
+    if (image.image == null) {
+      return [];
+    }
+    const texture = gl.createTexture();
+    if (texture == null) {
+      return [];
+    }
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      image.image
     );
-    gl.enableVertexAttribArray(1);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MIN_FILTER,
+      gl.LINEAR_MIPMAP_NEAREST
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
+    return [texture];
+  },
+
+  drawBuffer: (
+    gl: WebGL2RenderingContext,
+    buffers: WebGLBuffer[],
+    textures: WebGLTexture[]
+  ) => {
+    // bind buffer
+    if (buffers.length > 0) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffers[0]);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * FLOAT_BYTE_SIZE, 0);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(
+        1,
+        2,
+        gl.FLOAT,
+        false,
+        5 * FLOAT_BYTE_SIZE,
+        3 * FLOAT_BYTE_SIZE
+      );
+      gl.enableVertexAttribArray(1);
+    }
+    // bind texture
+    if (textures.length > 0) {
+      gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+    }
   },
 
   unbind: (gl: WebGL2RenderingContext) => {
     gl.disableVertexAttribArray(0);
     gl.disableVertexAttribArray(1);
+    gl.bindTexture(gl.TEXTURE_2D, null);
   },
 };
 

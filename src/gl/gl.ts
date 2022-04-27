@@ -1,4 +1,5 @@
-import { ImageContext, Shader } from "../types/gl";
+import { CanvasWindow } from "../types/window";
+import { Shader } from "../types/shader";
 import { SimpleImageShader } from "./simple_image_shader";
 
 export const SHADERS = {
@@ -7,65 +8,56 @@ export const SHADERS = {
 
 export const drawGL = (
   canvas: HTMLCanvasElement,
-  imageData: ImageContext[],
-  shader: Shader
+  canvasWindow: CanvasWindow
 ) => {
-  const { image, mvpMat } = imageData[0];
   const gl = canvas?.getContext("webgl2");
   if (!gl) {
     console.log("WebGL unavailable");
     return;
   }
-  // Shader program
-  const program = compileShader(gl, shader.shaderPath);
-  if (program == undefined) {
-    return;
-  }
-  // Vertex array buffer
-  const buffers = shader.arrayBuffer.prepareBuffer(
-    gl,
-    image.width / image.height
-  );
-  // Uniform variable buffer
-  const ubuffers = shader.uniformBuffer.prepareBuffer(gl, program, [
-    mvpMat.elements,
-  ]);
-  // Texture
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(
-    gl.TEXTURE_2D,
-    gl.TEXTURE_MIN_FILTER,
-    gl.LINEAR_MIPMAP_NEAREST
-  );
-  gl.generateMipmap(gl.TEXTURE_2D);
+
+  const Drawables = canvasWindow.subWindows
+    .map((subWindow) =>
+      subWindow.widgets.map((widget) => {
+        const program = compileShader(gl, widget.shader.shaderPath);
+        if (program == undefined) {
+          return;
+        }
+        const abuf = widget.shader.arrayBuffer;
+        return {
+          widget: widget,
+          program: program,
+          buffers: abuf.prepareBuffer(gl, widget),
+          textures: abuf.prepareTexture ? abuf.prepareBuffer(gl, widget) : [],
+          ubuffers: widget.shader.uniformBuffer.prepareBuffer(
+            gl,
+            program,
+            widget
+          ),
+        };
+      })
+    )
+    .flat();
 
   const render = () => {
-    // bind buffer
-    shader.arrayBuffer.drawBuffer(gl, buffers);
-    // bind uniform buffer
-    shader.uniformBuffer.updateBuffer(gl, [mvpMat.elements], ubuffers);
-    shader.uniformBuffer.drawBuffer(gl, ubuffers);
-    // bind texture
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    // bind shader
-    gl.useProgram(program);
-
-    // draw
     gl.clearColor(0, 0, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    // free
-    shader.arrayBuffer.unbind(gl);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.useProgram(null);
-
-    if (!imageData[0].isDrawing) {
-      return;
-    }
-
+    Drawables.forEach((drawable) => {
+      if (drawable == undefined) {
+        return;
+      }
+      const { widget, program, buffers, textures, ubuffers } = drawable;
+      // bind buffers
+      widget.shader.arrayBuffer.drawBuffer(gl, buffers, textures);
+      widget.shader.uniformBuffer.updateBuffer(gl, widget, ubuffers);
+      widget.shader.uniformBuffer.drawBuffer(gl, ubuffers);
+      gl.useProgram(program);
+      // draw
+      gl.drawArrays(widget.renderMode, 0, widget.numVertex);
+      // post process
+      widget.shader.arrayBuffer.unbind(gl);
+      gl.useProgram(null);
+    });
     requestAnimationFrame(render);
   };
   requestAnimationFrame(render);

@@ -1,11 +1,4 @@
-import { Matrix4 } from "three";
-
-export type ImageContext = {
-  filename: string;
-  image: HTMLImageElement;
-  mvpMat: Matrix4;
-  isDrawing: boolean;
-};
+import { WidgetsBase } from "./widgets";
 
 export type Shader = {
   shaderPath: string;
@@ -16,9 +9,17 @@ export type Shader = {
 export type VertexArrayBuffer = {
   prepareBuffer: (
     gl: WebGL2RenderingContext,
-    aspectRatio?: number
+    widget: WidgetsBase
   ) => WebGLBuffer[];
-  drawBuffer: (gl: WebGL2RenderingContext, buffers: WebGLBuffer[]) => void;
+  prepareTexture?: (
+    gl: WebGL2RenderingContext,
+    widget: WidgetsBase
+  ) => WebGLTexture[];
+  drawBuffer: (
+    gl: WebGL2RenderingContext,
+    buffers: WebGLBuffer[],
+    textures: WebGLTexture[]
+  ) => void;
   unbind: (gl: WebGL2RenderingContext) => void;
 };
 
@@ -26,12 +27,12 @@ export type UniformBuffer = {
   prepareBuffer: (
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
-    elem: number[][]
+    widget: WidgetsBase
   ) => WebGLBuffer[];
 
   updateBuffer: (
     gl: WebGL2RenderingContext,
-    elem: number[][],
+    widget: WidgetsBase,
     buffers: WebGLBuffer[]
   ) => void;
 

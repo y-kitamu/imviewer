@@ -1,17 +1,31 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { ImageContext, Shader } from "./types/gl";
+import { Shader } from "./types/shader";
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
 import { ScaleSlider } from "./components/scale_slider";
 import { SimpleImageShader } from "./gl/simple_image_shader";
 import { SettingDrawer } from "./components/setting_drawer";
+import { CanvasWindow } from "./types/window";
+
+const defaultCanvasWindow: CanvasWindow = {
+  subWindows: [
+    {
+      left: 0.0,
+      top: 0.0,
+      width: 1.0,
+      height: 1.0,
+      widgets: [],
+    },
+  ],
+};
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
-  const [imageDatas, setImageDatas] = React.useState<ImageContext[]>([]);
+  const [canvasWindow, setCanvasWindow] =
+    React.useState<CanvasWindow>(defaultCanvasWindow);
   const [currentShader, setCurrentShader] =
     React.useState<Shader>(SimpleImageShader);
   const rootRef = React.useRef<HTMLDivElement>(null);

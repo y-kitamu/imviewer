@@ -6,7 +6,9 @@ import { OpenDrawerButton } from "./components/open_menu_button";
 import { ScaleSlider } from "./components/scale_slider";
 import { SettingDrawer } from "./components/setting_drawer";
 import { CanvasWindow } from "./types/window";
-import { Drawable } from "./types/drawable";
+import { WidgetType, WidgetsBase } from "./types/widgets";
+import { Shader } from "./types/shader";
+import { SimpleImageShader } from "./gl/simple_image_shader";
 
 const defaultCanvasWindow: CanvasWindow = {
   onFocus: { row: 1, col: 1 },
@@ -14,101 +16,45 @@ const defaultCanvasWindow: CanvasWindow = {
   ncols: 1,
   rowSizes: [1.0],
   colSizes: [1.0],
-  widgets: [[[]]],
+  drawables: [[[]]],
+};
+
+const defaultShaders: { [widgetType in WidgetType]: Shader } = {
+  image: SimpleImageShader,
 };
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
-  const [canvasWindow, setCanvasWindow] =
-    React.useState<CanvasWindow>(defaultCanvasWindow);
-  const refDrawables = React.useRef<(Drawable | undefined)[][][]>([[[]]]);
-  const isMouseDown = React.useRef<boolean>(false);
-
-  const insertColumn = (colIndex: number) => {};
-  const insertRow = (rowIndex: number) => {};
-  const deleteColumn = (colIndex: number) => {};
-  const deleteRow = (rowIndex: number) => {};
-
-  const handleWheel = (e: React.WheelEvent) => {
-    imageDatas.map((data) => {
-      if (!data.isDrawing) {
-        return;
-      }
-      const { mvpMat } = data;
-      let scale = 1.0;
-      switch (e.deltaMode) {
-        case 0x00:
-          scale = 0.003;
-          break;
-        case 0x01:
-          scale = 0.01;
-          break;
-        case 0x02:
-          scale = 0.1;
-          break;
-        default:
-          console.log(`Invalid deltaMode value : ${e.deltaMode}`);
-      }
-      const delta = Math.max(1.0 - scale * e.deltaY, 0.0);
-      mvpMat.elements[0] *= delta;
-      mvpMat.elements[5] *= delta;
-    });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isMouseDown.current = true;
-  };
-  const handleMouseUp = (e: React.MouseEvent) => {
-    isMouseDown.current = false;
-  };
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseDown.current) {
-      return;
-    }
-    imageDatas.map((data) => {
-      if (!data.isDrawing) {
-        return;
-      }
-      const { mvpMat } = data;
-      const dx = (e.movementX / window.innerWidth) * 2.0;
-      const dy = (e.movementY / window.innerHeight) * 2.0;
-      mvpMat.elements[12] += dx;
-      mvpMat.elements[13] -= dy;
-    });
-  };
+  const refWidgets = React.useRef<WidgetsBase[]>([]);
+  const refCanvasWindow = React.useRef<CanvasWindow>(defaultCanvasWindow);
+  const refCurrentShaders = React.useRef<{
+    [widgetType in WidgetType]: Shader;
+  }>();
 
   return (
-    <div
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onMouseMove={handleMouseMove}
-    >
+    <>
       <OpenDrawerButton setIsOpen={setIsMenuOpen} />
       <OpenDrawerButton
         setIsOpen={setIsSettingOpen}
         left={window.innerWidth - 100}
         top={0}
       />
-      <ImageCanvas images={imageDatas} currentShader={currentShader} />
+      <ImageCanvas refCanvasWindow={refCanvasWindow} />
       <MenuDrawer
         isOpen={isMenuOpen}
         setIsOpen={setIsMenuOpen}
-        imageDatas={imageDatas}
-        setImageDatas={setImageDatas}
+        widgets={refWidgets}
+        refCanvasWindow={refCanvasWindow}
       />
       <SettingDrawer
         isOpen={isSettingOpen}
         setIsOpen={setIsSettingOpen}
-        imageDatas={imageDatas}
-        setImageDatas={setImageDatas}
-        currentShader={currentShader}
-        setCurrentShader={setCurrentShader}
+        widgets={refWidgets}
+        refCanvasWindow={refCanvasWindow}
       />
-      <ScaleSlider mvpMat={imageDatas.find((data) => data.isDrawing)?.mvpMat} />
-    </div>
+      <ScaleSlider />
+    </>
   );
 };
 

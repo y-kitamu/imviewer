@@ -16,37 +16,37 @@ export const drawGL = (
     return;
   }
 
-  const windowsDrawables: (Drawable | undefined)[][][] =
-    canvasWindow.widgets.map((rowWidgets) =>
-      rowWidgets.map((widgets) =>
-        widgets.map((widget) => {
-          const program = compileShader(gl, widget.shader.shaderPath);
-          if (program == undefined) {
-            return;
-          }
-          const abuf = widget.shader.arrayBuffer;
-          return {
-            widget: widget,
-            program: program,
-            buffers: abuf.prepareBuffer(gl, widget),
-            textures: abuf.prepareTexture
-              ? abuf.prepareTexture(gl, widget)
-              : [],
-            ubuffers: widget.shader.uniformBuffer.prepareBuffer(
-              gl,
-              program,
-              widget
-            ),
-          };
-        })
-      )
-    );
+  // const windowsDrawables: (Drawable | undefined)[][][] =
+  //   canvasWindow.widgets.map((rowWidgets) =>
+  //     rowWidgets.map((widgets) =>
+  //       widgets.map((widget) => {
+  //         const program = compileShader(gl, widget.shader.shaderPath);
+  //         if (program == undefined) {
+  //           return;
+  //         }
+  //         const abuf = widget.shader.arrayBuffer;
+  //         return {
+  //           widget: widget,
+  //           program: program,
+  //           buffers: abuf.prepareBuffer(gl, widget),
+  //           textures: abuf.prepareTexture
+  //             ? abuf.prepareTexture(gl, widget)
+  //             : [],
+  //           ubuffers: widget.shader.uniformBuffer.prepareBuffer(
+  //             gl,
+  //             program,
+  //             widget
+  //           ),
+  //         };
+  //       })
+  //     )
+  //   );
 
   const render = () => {
     gl.clearColor(0, 0, 0, 0);
 
-    windowsDrawables.forEach((rowDrawables) => {
-      rowDrawables.forEach((drawables) => {
+    canvasWindow.drawables.forEach((rows) => {
+      rows.forEach((drawables) => {
         drawables.forEach((drawable) => {
           if (drawable == undefined) {
             return;
@@ -65,6 +65,7 @@ export const drawGL = (
         });
       });
     });
+
     requestAnimationFrame(render);
   };
   requestAnimationFrame(render);

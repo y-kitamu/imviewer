@@ -1,17 +1,20 @@
 const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
 import { Matrix4 } from "three";
-
-import { getBasename } from "../utility";
+import { ImageWidget } from "../types/widgets";
 import { MenuDrawerProps } from "../types/props";
-import { ImageContext } from "../types/gl";
 import { LoadFileButton } from "./load_file_button";
+import { hashCode } from "../lib";
+
+const getHash = (baseStr: string) => {
+  const seed = `${baseStr}${Date.now()}`;
+};
 
 /**
  *
  */
 export const MenuDrawer = (props: MenuDrawerProps) => {
-  const { isOpen, setIsOpen, imageDatas, setImageDatas } = props;
+  const { isOpen, setIsOpen, widgets, refCanvasWindow } = props;
 
   const loadJson = async (file: File) => {
     const json_text = await file.text();
@@ -23,26 +26,19 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        const showing = imageDatas.filter((data) => data.isDrawing);
-        if (showing.length == 1) {
-          showing[0].isDrawing = false;
-        }
-        const image = new Image();
-        image.src = reader.result;
-        image.onload = () => {
-          setImageDatas(
-            imageDatas.concat([
-              {
-                filename: getBasename(file.name),
-                image,
-                mvpMat: new Matrix4(),
-                isDrawing: true,
-              },
-            ])
-          );
-        };
+      if (!(typeof reader.result === "string")) {
+        return;
       }
+      const image = new Image();
+      image.src = reader.result;
+      const imageWidget: ImageWidget = {
+        id: hashCode(`${reader.result}${Date.now()}`),
+        widgetType: "image",
+        shader:
+      };
+      image.onload = () => {
+        widgets.current.push(imageWidget);
+      };
     };
   };
 

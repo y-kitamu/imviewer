@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "module": "es6",
+    "target": "es6",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitAny": true,

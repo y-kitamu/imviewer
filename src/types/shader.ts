@@ -1,5 +1,22 @@
 import { WidgetsBase } from "./widgets";
 
+export type ShaderParseResult = {
+  vertices: { location: string; elemCount: number; name: string }[];
+  uniforms: { location: string; elemCount: number; name: string }[];
+  samplers: { location: string; samplerType: string; name: string }[];
+  uniformBlocks: {
+    location: string;
+    objectSize: number;
+    name: string;
+    elements: {
+      baseAlign: number;
+      alignOffset: number;
+      elemCount: number;
+      name: string;
+    }[];
+  }[];
+};
+
 export type Shader = {
   shaderPath: string;
   arrayBuffer: VertexArrayBuffer;

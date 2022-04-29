@@ -2,16 +2,6 @@ import { FLOAT_BYTE_SIZE, SIMPLE_IMAGE_SHADER } from "../constants";
 import { Shader, UniformBuffer, VertexArrayBuffer } from "../types/shader";
 import { ImageWidget, WidgetsBase } from "../types/widgets";
 
-const updateUniformBufferImpl = (
-  gl: WebGL2RenderingContext,
-  elem: number[][],
-  buffers: WebGLBuffer[]
-) => {
-  gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[0]);
-  gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(elem[0]), gl.DYNAMIC_DRAW);
-  gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-};
-
 const SimpleImageArrayBuffer: VertexArrayBuffer = {
   prepareBuffer: (
     gl: WebGL2RenderingContext,
@@ -117,7 +107,7 @@ const SimpleImageUniformBuffer: UniformBuffer = {
   prepareBuffer: (
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
-    elem: number[][]
+    widget: WidgetsBase
   ): WebGLBuffer[] => {
     const mvpUBOIdx = gl.getUniformBlockIndex(program, "matrix");
     gl.uniformBlockBinding(program, mvpUBOIdx, 0);
@@ -126,21 +116,36 @@ const SimpleImageUniformBuffer: UniformBuffer = {
       return [];
     }
     const buffers = [mvpUBO];
-    updateUniformBufferImpl(gl, elem, buffers);
+    updateUniformBufferImpl(gl, widget, buffers);
     return buffers;
   },
 
   updateBuffer: (
     gl: WebGL2RenderingContext,
-    elem: number[][],
+    widget: WidgetsBase,
     buffers: WebGLBuffer[]
   ) => {
-    updateUniformBufferImpl(gl, elem, buffers);
+    updateUniformBufferImpl(gl, widget, buffers);
   },
 
   drawBuffer: (gl: WebGL2RenderingContext, buffers: WebGLBuffer[]) => {
     gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, buffers[0]);
   },
+};
+
+const updateUniformBufferImpl = (
+  gl: WebGL2RenderingContext,
+  widget: WidgetsBase,
+  buffers: WebGLBuffer[]
+) => {
+  const imageWidget = widget as ImageWidget;
+  gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[0]);
+  gl.bufferData(
+    gl.UNIFORM_BUFFER,
+    new Float32Array(imageWidget.mvpMat),
+    gl.DYNAMIC_DRAW
+  );
+  gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 };
 
 export const SimpleImageShader: Shader = {

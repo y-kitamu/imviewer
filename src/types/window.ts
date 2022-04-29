@@ -1,13 +1,13 @@
-import { WidgetsBase } from "./widgets";
+import { Drawable } from "./drawable";
 
-// Sub window parameters on `HTMLCanvasElement`
+// Parameters of sub window draw on `HTMLCanvasElement`
 export type CanvasWindow = {
   onFocus: { row: number; col: number };
   nrows: number;
   ncols: number;
-  rowSizes: number[];
-  colSizes: number[];
-  // widgets of each sub window.
-  // Widgets of window position (row, col) is contained at widgets[row][col][:].
-  widgets: WidgetsBase[][][];
+  rowSizes: number[]; // sum(rowSizes) should be 1.0
+  colSizes: number[]; // sum(colSizes) should be 1.0
+  // Drawables (OpenGL widgets) of each sub window.
+  // Drawables of window position (row, col) is contained at widgets[row][col][:].
+  drawables: Drawable[][][];
 };

@@ -1,16 +1,16 @@
-import { ImageContext, Shader } from "./gl";
-import { Matrix4 } from "three";
+import * as React from "react";
+import { WidgetsBase } from "./widgets";
+import { CanvasWindow } from "./window";
 
 export type ImageCanvasProps = {
-  images: ImageContext[];
-  currentShader: Shader;
+  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
 };
 
 export type MenuDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  imageDatas: ImageContext[];
-  setImageDatas: (val: ImageContext[]) => void;
+  widgets: React.MutableRefObject<WidgetsBase[]>;
+  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
 };
 
 export type OpenDrawerButtonProps = {
@@ -25,15 +25,15 @@ export type LoadFileButtonProps = {
   onChange?: (elem: HTMLInputElement | null) => void;
 };
 
-export type ScaleSliderProps = {
-  mvpMat: Matrix4 | null;
-};
+export type ScaleSliderProps = {};
 
 export type SettingDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  imageDatas: ImageContext[];
-  setImageDatas: (val: ImageContext[]) => void;
-  currentShader: Shader;
-  setCurrentShader: (val: Shader) => void;
+  widgets: React.MutableRefObject<WidgetsBase[]>;
+  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
+};
+
+export type WindowOperationButtonsProps = {
+  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
 };

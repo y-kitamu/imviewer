@@ -5,6 +5,8 @@ import { ImageWidget } from "../types/widgets";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
 import { hashCode } from "../lib";
+import { loadImage } from "../io/image";
+import { loadJson } from "../io/json";
 
 const getHash = (baseStr: string) => {
   const seed = `${baseStr}${Date.now()}`;
@@ -16,30 +18,12 @@ const getHash = (baseStr: string) => {
 export const MenuDrawer = (props: MenuDrawerProps) => {
   const { isOpen, setIsOpen, widgets, refCanvasWindow } = props;
 
-  const loadJson = async (file: File) => {
-    const json_text = await file.text();
-    console.log(json_text);
-    const json = JSON.parse(json_text);
+  const setJson = async (file: File) => {
+    const json = await loadJson(file);
   };
 
-  const loadImage = async (file: File) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      if (!(typeof reader.result === "string")) {
-        return;
-      }
-      const image = new Image();
-      image.src = reader.result;
-      const imageWidget: ImageWidget = {
-        id: hashCode(`${reader.result}${Date.now()}`),
-        widgetType: "image",
-        shader:
-      };
-      image.onload = () => {
-        widgets.current.push(imageWidget);
-      };
-    };
+  const setImage = async (file: File) => {
+    const image = await loadImage(file);
   };
 
   const onFileSelected = (

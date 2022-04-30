@@ -2,6 +2,13 @@ import { Matrix4, Vector2 } from "three";
 import { Shader } from "./shader";
 
 export type WidgetType = "image" | "point" | "line" | "arrow";
+export type RenderMode =
+  | "POINTS"
+  | "LINES"
+  | "LINE_LOOP"
+  | "TRIANGLES"
+  | "TRIANGLE_STRIP"
+  | "TRIANGLE_FAN";
 
 export type WidgetsBase = {
   id: number; // hash id.

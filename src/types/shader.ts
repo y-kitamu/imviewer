@@ -1,24 +1,45 @@
 import { WidgetsBase } from "./widgets";
 
 export type ShaderParseResult = {
-  vertices: { location: string; elemCount: number; name: string }[];
-  uniforms: { location: string; elemCount: number; name: string }[];
-  samplers: { location: string; samplerType: string; name: string }[];
-  uniformBlocks: {
-    location: string;
-    objectSize: number;
+  vertices: VertexProperty[];
+  uniforms: UniformProperty[];
+  samplers: SamplerProperty[];
+  uniformBlocks: UniformBlockProperty[];
+};
+
+export type VertexProperty = {
+  location: number;
+  elemCount: number;
+  name: string;
+};
+
+export type UniformProperty = {
+  location: number;
+  elemCount: number;
+  name: string;
+};
+
+export type UniformBlockProperty = {
+  location: number;
+  objectSize: number;
+  name: string;
+  elements: {
+    baseAlign: number;
+    alignOffset: number;
+    elemCount: number;
     name: string;
-    elements: {
-      baseAlign: number;
-      alignOffset: number;
-      elemCount: number;
-      name: string;
-    }[];
   }[];
+};
+
+export type SamplerProperty = {
+  location: string;
+  samplerType: string;
+  name: string;
 };
 
 export type Shader = {
   shaderPath: string;
+  parseResult: ShaderParseResult;
   arrayBuffer: VertexArrayBuffer;
   uniformBuffer: UniformBuffer;
 };

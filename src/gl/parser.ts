@@ -28,7 +28,11 @@ const uniformBlockElemRe = /\s*(\w+)\s+(\w+)\*s;/g;
 const arrayRe = /\[(\d+)\]/g;
 
 /**
- *
+ * Parse shader source codes and return input vertices, uniforms, etc.
+ * This function load :
+ *   vertex shader from `${shaderPath}.vert`
+ *   fragment shader from `${shaderPath}.frag`
+ *   geometry shader from `${shaderPath}.geom`
  */
 export const parseShader = (shaderPath: string): ShaderParseResult => {
   const parseResult: ShaderParseResult = {
@@ -74,7 +78,7 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
 
   for (const match of source.matchAll(vertexInRe)) {
     vertices.push({
-      location: match[1],
+      location: Number(match[1]),
       elemCount: getElementCount(match[2]),
       name: match[3],
     });
@@ -83,13 +87,13 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
   for (const match of source.matchAll(uniformInRe)) {
     if (match[2].startsWith("sampler")) {
       samplers.push({
-        location: match[1],
+        location: Number(match[1]),
         samplerType: match[2],
         name: match[3],
       });
     } else {
       uniforms.push({
-        location: match[1],
+        location: Number(match[1]),
         elemCount: getElementCount(match[2]),
         name: match[3],
       });
@@ -110,7 +114,7 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
       offset += baseAlign;
     }
     uniformBlocks.push({
-      location: match[1],
+      location: Number(match[1]),
       objectSize: offset,
       name: match[2],
       elements,

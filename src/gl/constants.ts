@@ -1,5 +1,3 @@
-export const SCALE_SLIDER_FACTOR = 10;
-
 // GL constants
 export const FLOAT_BYTE_SIZE = 4;
 

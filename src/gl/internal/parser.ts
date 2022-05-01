@@ -2,30 +2,34 @@
  * Parse header of shader scripts.
  */
 
-import { ShaderParseResult } from "../types/shader";
+import { ShaderProperty } from "../types/shader";
 
-// Return array : [match string, location, data type, variable name]
-// Match pattern example : layout (location=0) in vec3 aPos;
+// Return array : [match string, location, data type, variable name, array sizes]
+// Match pattern example : layout (location=0) in vec3 aPos[5];
 const vertexInRe =
-  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*in\s+(\w+)\s+(\w+)\s*;/g;
-// Return array : [match string, binding, data type, variable name]
-// Match pattern example : layout (binding=0) uniform vec3 foo;
+  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*in\s+(\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
+// Return array : [match string, location, data type, variable name, arrai sizes]
+// Match pattern example : layout (location=0) uniform vec3 foo[2];
 const uniformInRe =
-  /layout\s*\(.*binding\s*=\s*(\d+).*\)\s*uniform\s+(\w+)\s+(\w+)\s*;/g;
-// Return array: [match string, binding, struct name, elements string]
+  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*uniform\s+(\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
+// Return array : [match string, location, sampler type, variable name, array sizes]
+// Match pattern example : layout (location=0)uniform sampler2D foo[5];
+const samplerInRe =
+  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*uniform\s+(sampler\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
+// Return array: [match string, binding, struct name, elements string, array sizes]
 // Match pattern example :
 // layout (binding=0) uniform Foo {
 //     vec3 bar;
-//     vec3 baz;
-// } mats;
+//     vec3 baz[10];
+// } mats[1];
 const uniformBlockRe =
-  /layout\s+\(.*binding\s*=\s*(\d+).*\)\s+uniform\s+(\w+)\s+\{\s*((?:\s*\w+\s+\w+;)+)\s*\}\s*\w*;/g;
-// Return array : [match string, data type, variable name]
+  /layout\s+\(.*binding\s*=\s*(\d+).*\)\s+uniform\s+(\w+)\s+\{\s*((?:\s*\w+\s+\w+\s*(?:\[\d+\]\s*)*;)+)\s*\}\s*\w*\s*((?:\[\d+\]\s*)*);/g;
+// Return array : [match string, data type, variable name, array size]
 // Match pattern example : mat4 mvp;
-const uniformBlockElemRe = /\s*(\w+)\s+(\w+)\*s;/g;
+const uniformBlockElemRe = /\s*(\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\*s;/g;
 // Retrun array : [match string, number of elements in the array]
 // Match pattern example : [3][4][5]
-const arrayRe = /\[(\d+)\]/g;
+const arrayRe = /\[\s*(\d+)\s*\]/g;
 
 /**
  * Parse shader source codes and return input vertices, uniforms, etc.
@@ -34,8 +38,8 @@ const arrayRe = /\[(\d+)\]/g;
  *   fragment shader from `${shaderPath}.frag`
  *   geometry shader from `${shaderPath}.geom`
  */
-export const parseShader = (shaderPath: string): ShaderParseResult => {
-  const parseResult: ShaderParseResult = {
+export const _parseShader = (shaderPath: string): ShaderProperty => {
+  const parseResult: ShaderProperty = {
     vertices: [],
     uniforms: [],
     uniformBlocks: [],
@@ -70,7 +74,7 @@ export const parseShader = (shaderPath: string): ShaderParseResult => {
 /**
  * Parse source string of GLSL to correct input data from cpu.
  */
-const parseShaderImpl = (source: string): ShaderParseResult => {
+const parseShaderImpl = (source: string): ShaderProperty => {
   const vertices = [];
   const uniforms = [];
   const uniformBlocks = [];
@@ -79,36 +83,33 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
   for (const match of source.matchAll(vertexInRe)) {
     vertices.push({
       location: Number(match[1]),
-      elemCount: getElementCount(match[2]),
+      dataTypeSize: getDataTypeSize(match[2]),
+      arrayLength: getArraySize(match[4]),
       name: match[3],
     });
   }
 
   for (const match of source.matchAll(uniformInRe)) {
-    if (match[2].startsWith("sampler")) {
-      samplers.push({
-        location: Number(match[1]),
-        samplerType: match[2],
-        name: match[3],
-      });
-    } else {
-      uniforms.push({
-        location: Number(match[1]),
-        elemCount: getElementCount(match[2]),
-        name: match[3],
-      });
-    }
+    uniforms.push({
+      location: Number(match[1]),
+      dataType: match[2],
+      dataTypeSize: getDataTypeSize(match[2]),
+      arrayLength: getArraySize(match[4]),
+      name: match[3],
+    });
   }
 
   for (const match of source.matchAll(uniformBlockRe)) {
     const elements = [];
     let offset = 0;
     for (const elem of match[3].matchAll(uniformBlockElemRe)) {
-      const baseAlign = getBaseAlignment(elem[1]);
+      const arrayLength = getArraySize(match[4]);
+      const baseAlign = getBaseAlignment(elem[1]) * arrayLength;
       elements.push({
         baseAlign,
         alignOffset: offset,
-        elemCount: getElementCount(elem[1]),
+        dataTypeSize: getDataTypeSize(elem[1]),
+        arrayLength,
         name: elem[2],
       });
       offset += baseAlign;
@@ -116,9 +117,21 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
     uniformBlocks.push({
       location: Number(match[1]),
       objectSize: offset,
+      arrayLength: getArraySize(match[3]),
       name: match[2],
       elements,
     });
+  }
+
+  for (const match of source.matchAll(samplerInRe)) {
+    for (let i = 0; i < getArraySize(match[4]); i++) {
+      samplers.push({
+        location: Number(match[1]) + i,
+        samplerType: match[2],
+        arrayLength: getArraySize(match[4]),
+        name: match[3],
+      });
+    }
   }
 
   return {
@@ -132,7 +145,7 @@ const parseShaderImpl = (source: string): ShaderParseResult => {
 /**
  * Get element count of the `dtypeStr`
  */
-const getElementCount = (dtypeStr: string) => {
+const getDataTypeSize = (dtypeStr: string) => {
   let cnt = 0;
   if (dtypeStr.startsWith("vec")) {
     cnt = Number(dtypeStr.match(/vec(\d+)/)?.at(1));
@@ -156,7 +169,12 @@ const getElementCount = (dtypeStr: string) => {
   if (cnt == 0 || cnt == NaN) {
     throw new Error(`Unsupported type : ${dtypeStr}`);
   }
-  for (const elem of dtypeStr.matchAll(arrayRe)) {
+  return cnt;
+};
+
+const getArraySize = (arraySizeStr: string) => {
+  let cnt = 1;
+  for (const elem of arraySizeStr.matchAll(arrayRe)) {
     cnt *= Number(elem[1]);
   }
   return cnt;
@@ -164,7 +182,7 @@ const getElementCount = (dtypeStr: string) => {
 
 /**
  * Get the space a variable (type: `dtypeStr`) takes within a uniform block.
- * layout rule of 'std140' : https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
+ * layout rule must be 'std140' : https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
  */
 const getBaseAlignment = (dtypeStr: string) => {
   let cnt = 0;

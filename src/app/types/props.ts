@@ -1,5 +1,4 @@
 import * as React from "react";
-import { WidgetsBase } from "./widgets";
 import { CanvasWindow } from "./window";
 
 export type ImageCanvasProps = {
@@ -9,8 +8,6 @@ export type ImageCanvasProps = {
 export type MenuDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  widgets: React.MutableRefObject<WidgetsBase[]>;
-  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
 };
 
 export type OpenDrawerButtonProps = {
@@ -30,7 +27,7 @@ export type ScaleSliderProps = {};
 export type SettingDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  widgets: React.MutableRefObject<WidgetsBase[]>;
+  widgets: React.MutableRefObject<[]>;
   refCanvasWindow: React.MutableRefObject<CanvasWindow>;
 };
 

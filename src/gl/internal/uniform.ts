@@ -2,8 +2,8 @@
  * Scripts for preparing (binding) and drawing uniform variables.
  */
 
-import { UniformProperty } from "../types/shader";
-import { UniformSchema } from "../types/json";
+import { Internal } from "../types/shader";
+import { UniformSchema } from "../types/schemas";
 import { _searchDataSchema } from "./utility";
 
 /**
@@ -11,19 +11,13 @@ import { _searchDataSchema } from "./utility";
 export const _prepareUniformVariables = (
   gl: WebGL2RenderingContext,
   uniformSchemas: UniformSchema[],
-  uniformProperties: UniformProperty[]
-) => {
-  if (uniformSchemas.length != uniformProperties.length) {
-    throw new Error(
-      `Assertion error (uniform buffer) : ${uniformSchemas.length} =! ${uniformProperties.length}`
-    );
-  }
-};
+  uniformProperties: Internal.UniformProperty[]
+) => {};
 
 export const _drawUniformVariables = (
   gl: WebGL2RenderingContext,
   uniformSchemas: UniformSchema[],
-  uniformProperties: UniformProperty[]
+  uniformProperties: Internal.UniformProperty[]
 ) => {
   for (const uniform of uniformProperties) {
     const uniformElem = _searchDataSchema(uniform.name, uniformSchemas);

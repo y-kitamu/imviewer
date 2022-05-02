@@ -1,3 +1,4 @@
+import { SHADER_DIR } from "./constants";
 import { _compileShader } from "./internal/compiler";
 import { _parseShader } from "./internal/parser";
 import { _drawTexture, _prepareTexture } from "./internal/texture";
@@ -9,37 +10,40 @@ import {
   _drawUniformBlocks,
   _prepareUniformBlocks,
 } from "./internal/uniformBlock";
+import { _calcNumberOfVertices, _getRenderMode } from "./internal/utility";
 import { _drawVertices, _prepareVertices } from "./internal/vertex";
-import { Drawable } from "./types/drawable";
+import { Internal as Idrawable } from "./types/drawable";
 import { WidgetSchema } from "./types/schemas";
-import { Shader } from "./types/shader";
+import { Internal as Ishader } from "./types/shader";
+
+// Internal states
 
 const loadedImages = new (class {
-  _images: { [filePath: string]: WebGLTexture } = {};
-  has = (filePath: string) => filePath in this._images;
-  get = (filePath: string) => this._images[filePath];
-  add = (filePath: string, texture: WebGLTexture) => {
-    this._images[filePath] = texture;
+  _images: { [fileBasename: string]: WebGLTexture } = {};
+  has = (fileBasename: string) => fileBasename in this._images;
+  get = (fileBasename: string) => this._images[fileBasename];
+  add = (fileBasename: string, texture: WebGLTexture) => {
+    this._images[fileBasename] = texture;
   };
-  remove = (gl: WebGL2RenderingContext, filePath: string) => {
-    gl.deleteTexture(this._images[filePath]);
-    delete this._images[filePath];
+  remove = (gl: WebGL2RenderingContext, fileBasename: string) => {
+    gl.deleteTexture(this._images[fileBasename]);
+    delete this._images[fileBasename];
   };
 })();
 
 const compiledShaders = new (class {
-  _shaders: { [key: string]: Shader } = {};
-  has = (shaderPath: string) => shaderPath in this._shaders;
-  get = (shaderPath: string) => this._shaders[shaderPath];
-  add = (shaderPath: string, shader: Shader) => {
-    this._shaders[shaderPath] = shader;
+  _shaders: { [key: string]: Ishader.Shader } = {};
+  has = (shaderStem: string) => shaderStem in this._shaders;
+  get = (shaderStem: string) => this._shaders[shaderStem];
+  add = (shaderStem: string, shader: Ishader.Shader) => {
+    this._shaders[shaderStem] = shader;
   };
 })();
 
 const drawables = new (class {
-  _drawables: { [key: string]: Drawable } = {};
+  _drawables: { [key: string]: Idrawable.Drawable } = {};
   has = (id: string) => id in this._drawables;
-  add = (drawable: Drawable) => {
+  add = (drawable: Idrawable.Drawable) => {
     this._drawables[drawable.widget.id] = drawable;
   };
   get = (id: string) => this._drawables[id];
@@ -53,28 +57,60 @@ const drawables = new (class {
   };
 })();
 
-export const loadShader = (gl: WebGL2RenderingContext, shaderPath: string) => {
+// Interface to other libraries
+
+/**
+ * Parse and compile shader script.
+ * Return sampler variables needed to create drawable.
+ * @param gl
+ * @param shaderPath stem of the shader scripts' path.
+ * @returns {string[]} List of variable names of samplers defined in shader scripts.
+ */
+export const loadShader = (
+  gl: WebGL2RenderingContext,
+  shaderPath: string
+): string[] => {
+  const stem = shaderPath.replace(SHADER_DIR, "");
+  if (compiledShaders.has(stem)) {
+    return compiledShaders
+      .get(stem)
+      .property.samplers.map((sampler) => sampler.name);
+  }
   const property = _parseShader(shaderPath);
   const program = _compileShader(gl, shaderPath);
-  compiledShaders.add(shaderPath, { property, program });
+  compiledShaders.add(stem, { property, program });
+  const samplerNames = property.samplers.map((sampler) => sampler.name);
+  return samplerNames;
 };
 
+/**
+ * Create texture (load image data to gpu) and register to `loadedImages`.
+ * @param gl
+ * @param fileBasename Basename of the image file
+ * @param image
+ */
 export const loadImage = (
   gl: WebGL2RenderingContext,
-  filePath: string,
+  fileBasename: string,
   image: HTMLImageElement
 ) => {
-  if (loadedImages.has(filePath)) {
+  if (loadedImages.has(fileBasename)) {
     return;
   }
   const texture = _prepareTexture(gl, image);
-  loadedImages.add(filePath, texture);
+  loadedImages.add(fileBasename, texture);
 };
 
+/**
+ * Create drawable (which contains everything needed for draw-call) and register to `drawables`.
+ * @param gl
+ * @param widget
+ * @param textures key : file basename, value: variable name
+ */
 export const createDrawable = (
   gl: WebGL2RenderingContext,
   widget: WidgetSchema,
-  textures: { [key: string]: string } // key : filePath, value: variable name
+  textures: { [key: string]: string }
 ) => {
   if (!compiledShaders.has(widget.shaderPath)) {
     throw new Error(`Compiled shader is not found : ${widget.shaderPath}`);
@@ -87,14 +123,19 @@ export const createDrawable = (
   }
 
   const shader = compiledShaders.get(widget.shaderPath);
+  const numVertex = _calcNumberOfVertices(
+    shader.property.vertices[0],
+    widget.vertices
+  );
   const vertexBuffer = _prepareVertices(
     gl,
     widget.vertices,
     shader.property.vertices
   );
-  const drawable: Drawable = {
+  const drawable: Idrawable.Drawable = {
     widget,
     shader,
+    numVertex,
     vertexBuffer,
     textures,
   };
@@ -111,6 +152,24 @@ export const createDrawable = (
   drawables.add(drawable);
 };
 
+/**
+ * Remove drawable of id = `widgetId` from current drawables.
+ * @param gl
+ * @param widgetId
+ */
+export const removeDrawable = (
+  gl: WebGL2RenderingContext,
+  widgetId: string
+) => {
+  if (drawables.has(widgetId)) {
+    drawables.remove(gl, widgetId);
+  }
+};
+
+/**
+ * Draw all objects registered in `drawables`.
+ * @param gl
+ */
 export const draw = (gl: WebGL2RenderingContext) => {
   for (const key in drawables.all()) {
     const drawable = drawables.get(key);
@@ -119,13 +178,19 @@ export const draw = (gl: WebGL2RenderingContext) => {
     if (drawable.widget.uniforms != undefined) {
       _drawUniformVariables(gl, drawable.widget.uniforms, property.uniforms);
     }
-    if (drawable.widget.unifromBlocks) {
+    if (drawable.uniformBlockBuffers) {
       _drawUniformBlocks(
         gl,
-        drawable.widget.unifromBlocks,
-        property.uniformBlocks
+        property.uniformBlocks,
+        drawable.uniformBlockBuffers
       );
     }
-    _drawTexture(gl, property.samplers, drawable.textures);
+    const textures = [];
+    for (const key in drawable.textures) {
+      textures.push(loadedImages.get(drawable.textures[key]));
+    }
+    _drawTexture(gl, property.samplers, textures);
+    const renderMode = _getRenderMode(gl, drawable.widget.renderMode);
+    gl.drawArrays(renderMode, 0, drawable.numVertex);
   }
 };

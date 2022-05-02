@@ -1,6 +1,14 @@
 // GL constants
 export const FLOAT_BYTE_SIZE = 4;
 
-const SHADER_DIR = "./shader/";
-export const BACKGROUND_SHADER = `${SHADER_DIR}background`;
-export const SIMPLE_IMAGE_SHADER = `${SHADER_DIR}simple_image`;
+export const SHADER_DIR = "./glsl/";
+export const DEFAULT_SHADER_STEMS = [
+  `background`,
+  `simple_image`,
+  `simple_point`,
+  `simple_line`,
+  `simple_arrow`,
+];
+export const DEFAULT_SHADERS = DEFAULT_SHADER_STEMS.map(
+  (stem) => `${SHADER_DIR}${stem}`
+);

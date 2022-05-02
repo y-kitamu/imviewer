@@ -1,4 +1,4 @@
-import { SamplerProperty } from "../types/shader";
+import { Internal } from "../types/shader";
 
 export const _prepareTexture = (
   gl: WebGL2RenderingContext,
@@ -22,14 +22,9 @@ export const _prepareTexture = (
 
 export const _drawTexture = (
   gl: WebGL2RenderingContext,
-  samplerProperties: SamplerProperty[],
-  textures: { [key: string]: WebGLTexture }
+  samplerProperties: Internal.SamplerProperty[],
+  textures: WebGLTexture[]
 ) => {
-  if (samplerProperties.length != textures.length) {
-    throw new Error(
-      `Assertion failed (number of texture) : ${samplerProperties.length} != ${textures.length}`
-    );
-  }
   for (let i = 0; i < samplerProperties.length; i++) {
     const sampler = samplerProperties[i];
     gl.activeTexture(sampler.location);

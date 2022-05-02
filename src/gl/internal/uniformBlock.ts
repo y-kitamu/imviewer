@@ -1,16 +1,16 @@
-import { UniformBlockSchema } from "gl/types/schemas";
-import { UniformBlockProperty } from "gl/types/shader";
+import { UniformBlockSchema } from "../types/schemas";
+import { Internal } from "../types/shader";
 
 export const _prepareUniformBlocks = (
   gl: WebGL2RenderingContext,
   uniformBlockSchemas: UniformBlockSchema[],
-  uniformBlockProperties: UniformBlockProperty[]
+  uniformBlockProperties: Internal.UniformBlockProperty[]
 ): WebGLBuffer[] => {
   return [];
 };
 
 export const _drawUniformBlocks = (
   gl: WebGLRenderingContext,
-  uniformBlockProperties: UniformBlockProperty[],
+  uniformBlockProperties: Internal.UniformBlockProperty[],
   buffers: WebGLBuffer[]
 ) => {};

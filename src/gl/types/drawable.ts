@@ -1,10 +1,13 @@
 import { WidgetSchema } from "./schemas";
-import { Shader } from "./shader";
+import { Internal as shader } from "./shader";
 
-export type Drawable = {
-  widget: WidgetSchema;
-  shader: Shader;
-  vertexBuffer: WebGLBuffer;
-  uniformBlockBuffers?: WebGLBuffer[];
-  textures: { [key: string]: string }; // key : filePath, value: variable name
-};
+export namespace Internal {
+  export type Drawable = {
+    widget: WidgetSchema;
+    shader: shader.Shader;
+    numVertex: number;
+    vertexBuffer: WebGLBuffer;
+    uniformBlockBuffers?: WebGLBuffer[];
+    textures: { [key: string]: string }; // key : filePath, value: variable name
+  };
+}

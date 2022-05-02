@@ -1,16 +1,7 @@
 const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
-import { Matrix4 } from "three";
-import { ImageWidget } from "../types/widgets";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
-import { hashCode } from "../lib";
-import { loadImage } from "../io/image";
-import { loadJson } from "../io/json";
-
-const getHash = (baseStr: string) => {
-  const seed = `${baseStr}${Date.now()}`;
-};
 
 /**
  *

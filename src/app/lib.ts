@@ -9,10 +9,15 @@ export const hashCode = (str: string) => {
   return hash;
 };
 
-export const basename = (filePath: string): string | undefined => {
+export const basename = (filePath: string): string => {
+  let bname = undefined;
   if (platform.os.startsWith("Windows")) {
-    return filePath.split("\\").at(-1);
+    bname = filePath.split("\\").at(-1);
   } else {
-    return filePath.split("/").at(-1);
+    bname = filePath.split("/").at(-1);
   }
+  if (bname == undefined) {
+    throw new Error(`Failed to get file basename : ${filePath}`);
+  }
+  return bname;
 };

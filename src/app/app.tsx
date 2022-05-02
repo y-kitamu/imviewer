@@ -6,9 +6,8 @@ import { OpenDrawerButton } from "./components/open_menu_button";
 import { ScaleSlider } from "./components/scale_slider";
 import { SettingDrawer } from "./components/setting_drawer";
 import { CanvasWindow } from "./types/window";
-import { WidgetType, WidgetsBase } from "./types/widgets";
-import { Shader } from "./types/shader";
-import { SimpleImageShader } from "./gl/simple_image_shader";
+import { DEFAULT_SHADER_STEMS } from "../gl/constants";
+import { Parts } from "./types/json";
 
 const defaultCanvasWindow: CanvasWindow = {
   onFocus: { row: 1, col: 1 },
@@ -16,21 +15,16 @@ const defaultCanvasWindow: CanvasWindow = {
   ncols: 1,
   rowSizes: [1.0],
   colSizes: [1.0],
-  drawables: [[[]]],
-};
-
-const defaultShaders: { [widgetType in WidgetType]: Shader } = {
-  image: SimpleImageShader,
+  widgets: [[[]]],
 };
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
-  const refWidgets = React.useRef<WidgetsBase[]>([]);
+  const refGL = React.useRef<WebGL2RenderingContext>();
+  const refParts = React.useRef<Parts>({});
+  const refShaderStems = React.useRef<string[]>(DEFAULT_SHADER_STEMS);
   const refCanvasWindow = React.useRef<CanvasWindow>(defaultCanvasWindow);
-  const refCurrentShaders = React.useRef<{
-    [widgetType in WidgetType]: Shader;
-  }>();
 
   return (
     <>
@@ -44,13 +38,11 @@ const App = () => {
       <MenuDrawer
         isOpen={isMenuOpen}
         setIsOpen={setIsMenuOpen}
-        widgets={refWidgets}
         refCanvasWindow={refCanvasWindow}
       />
       <SettingDrawer
         isOpen={isSettingOpen}
         setIsOpen={setIsSettingOpen}
-        widgets={refWidgets}
         refCanvasWindow={refCanvasWindow}
       />
       <ScaleSlider />

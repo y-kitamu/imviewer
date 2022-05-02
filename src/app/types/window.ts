@@ -1,4 +1,5 @@
-import { Drawable } from "./drawable";
+import { Matrix4 } from "three";
+import { WidgetSchema } from "../../gl/types/schemas";
 
 // Parameters of sub window draw on `HTMLCanvasElement`
 export type CanvasWindow = {
@@ -7,7 +8,10 @@ export type CanvasWindow = {
   ncols: number;
   rowSizes: number[]; // sum(rowSizes) should be 1.0
   colSizes: number[]; // sum(colSizes) should be 1.0
-  // Drawables (OpenGL widgets) of each sub window.
-  // Drawables of window position (row, col) is contained at widgets[row][col][:].
-  drawables: Drawable[][][];
+  mvpMats: Matrix4[][];
+  widgets: Widget[][][];
+};
+
+export type Widget = WidgetSchema & {
+  textures: { [key: string]: string }; // key : file basename, value: variable name
 };

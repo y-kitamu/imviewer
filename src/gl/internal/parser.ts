@@ -2,7 +2,7 @@
  * Parse header of shader scripts.
  */
 
-import { ShaderProperty } from "../types/shader";
+import { Internal } from "../types/shader";
 
 // Return array : [match string, location, data type, variable name, array sizes]
 // Match pattern example : layout (location=0) in vec3 aPos[5];
@@ -38,8 +38,8 @@ const arrayRe = /\[\s*(\d+)\s*\]/g;
  *   fragment shader from `${shaderPath}.frag`
  *   geometry shader from `${shaderPath}.geom`
  */
-export const _parseShader = (shaderPath: string): ShaderProperty => {
-  const parseResult: ShaderProperty = {
+export const _parseShader = (shaderPath: string): Internal.ShaderProperty => {
+  const parseResult: Internal.ShaderProperty = {
     vertices: [],
     uniforms: [],
     uniformBlocks: [],
@@ -74,7 +74,7 @@ export const _parseShader = (shaderPath: string): ShaderProperty => {
 /**
  * Parse source string of GLSL to correct input data from cpu.
  */
-const parseShaderImpl = (source: string): ShaderProperty => {
+const parseShaderImpl = (source: string): Internal.ShaderProperty => {
   const vertices = [];
   const uniforms = [];
   const uniformBlocks = [];

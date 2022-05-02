@@ -1,10 +1,14 @@
 /**
  * Scripts for preparing (binding) and drawing vertex buffer object.
  */
-import { VertexProperty } from "../types/shader";
-import { VertexSchema } from "../types/json";
+import { Internal } from "../types/shader";
+import { VertexSchema } from "../types/schemas";
 import { FLOAT_BYTE_SIZE } from "../constants";
-import { _calcNumberOfElements, _searchDataSchema } from "./utility";
+import {
+  _calcNumberOfElements,
+  _calcNumberOfVertices,
+  _searchDataSchema,
+} from "./utility";
 
 /**
  * Create vertex buffer object (vbo) for each vertex.
@@ -12,27 +16,12 @@ import { _calcNumberOfElements, _searchDataSchema } from "./utility";
 export const _prepareVertices = (
   gl: WebGL2RenderingContext,
   vertexSchemas: VertexSchema[],
-  vertexProperties: VertexProperty[]
+  vertexProperties: Internal.VertexProperty[]
 ): WebGLBuffer => {
-  // assertion check
-  if (vertexSchemas.length != vertexProperties.length) {
-    throw new Error(
-      "Number of buffer elements in json must be equal to number of vertex definitions in GALLS"
-    );
-  }
-
-  const calcNumberOfVertices = () => {
-    const vertex = vertexProperties[0];
-    const buffer = _searchDataSchema(vertex.name, vertexSchemas);
-    return (
-      Number(buffer.data?.length) / (vertex.dataTypeSize * vertex.arrayLength)
-    );
-  };
-
   // Number of elements in a single vertex.
   const numElem = _calcNumberOfElements(vertexProperties);
   // Number of vertices
-  const numVert = calcNumberOfVertices();
+  const numVert = _calcNumberOfVertices(vertexProperties[0], vertexSchemas);
   // Array passed to gpu
   const array = new Float32Array(numVert * numElem);
 
@@ -68,7 +57,7 @@ export const _prepareVertices = (
 
 export const _drawVertices = (
   gl: WebGLRenderingContext,
-  vertexProperties: VertexProperty[],
+  vertexProperties: Internal.VertexProperty[],
   buffer: WebGLBuffer
 ) => {
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

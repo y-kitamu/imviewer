@@ -8,6 +8,6 @@ export namespace Internal {
     numVertex: number;
     vertexBuffer: WebGLBuffer;
     uniformBlockBuffers?: WebGLBuffer[];
-    textures: { [key: string]: string }; // key : filePath, value: variable name
+    textures: { [key: string]: string | undefined }; // key: variable name, value : filePath
   };
 }

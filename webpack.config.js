@@ -1,9 +1,10 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const dist = path.resolve(__dirname, "dist");
 
 module.exports = {
-  entry: "./src/index.ts",
+  entry: "./src/app/index.ts",
   module: {
     rules: [
       {
@@ -12,7 +13,7 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.(frag|vert)$/,
+        test: /\.(frag|vert|geom)$/,
         type: "asset/source",
       },
     ],
@@ -28,8 +29,9 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: "./static/index.html", to: dist },
-        /* { from: "./static/", to: path.join(dist, "static") }, */
+        { from: "./src/gl/glsl", to: path.join(dist, "glsl") },
       ],
     }),
+    new ForkTsCheckerWebpackPlugin(),
   ],
 };

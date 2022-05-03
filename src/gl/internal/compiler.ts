@@ -1,7 +1,14 @@
+import {
+  VERTEX_SHADER_SOURCES,
+  SHADER_DIR,
+  FRAGMENT_SHADER_SOURCES,
+} from "../constants";
+
 export const _compileShader = (
   gl: WebGL2RenderingContext,
   shaderPath: string
 ): WebGLProgram => {
+  console.log(`Start compiling shader : ${shaderPath}`);
   const createShader = (
     shaderType: number,
     shaderSource: string
@@ -23,8 +30,9 @@ export const _compileShader = (
     return shader;
   };
 
-  const vertShaderSource = require(`${shaderPath}.vert`);
-  const fragShaderSource = require(`${shaderPath}.frag`);
+  const stem = shaderPath.replace(SHADER_DIR, "");
+  const vertShaderSource = VERTEX_SHADER_SOURCES[stem];
+  const fragShaderSource = FRAGMENT_SHADER_SOURCES[stem];
   const vertexShader = createShader(gl.VERTEX_SHADER, vertShaderSource);
   if (!vertexShader) {
     throw new Error("Failed to create vertex shader");

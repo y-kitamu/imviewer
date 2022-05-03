@@ -1,30 +1,40 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
+import { Matrix4 } from "three";
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
 import { ScaleSlider } from "./components/scale_slider";
 import { SettingDrawer } from "./components/setting_drawer";
-import { CanvasWindow } from "./types/window";
-import { DEFAULT_SHADER_STEMS } from "../gl/constants";
-import { Parts } from "./types/json";
-
-const defaultCanvasWindow: CanvasWindow = {
-  onFocus: { row: 1, col: 1 },
-  nrows: 1,
-  ncols: 1,
-  rowSizes: [1.0],
-  colSizes: [1.0],
-  widgets: [[[]]],
-};
+import {
+  CanvasWindow,
+  ImageProperty,
+  ShaderProperty,
+  Widget,
+} from "./types/window";
+import { DEFAULT_SHADER_PROPERTIES } from "./constants";
+import { getImageWidget } from "./canvas_window";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
-  const refGL = React.useRef<WebGL2RenderingContext>();
-  const refParts = React.useRef<Parts>({});
-  const refShaderStems = React.useRef<string[]>(DEFAULT_SHADER_STEMS);
-  const refCanvasWindow = React.useRef<CanvasWindow>(defaultCanvasWindow);
+  const refCanvas = React.useRef<HTMLCanvasElement>(null);
+  const refImages = React.useRef<ImageProperty[]>([]);
+  const refShaderStems = React.useRef<ShaderProperty[]>(
+    DEFAULT_SHADER_PROPERTIES
+  );
+  const refWidgets = React.useRef<Widget[]>([]);
+  const refCanvasWindow = React.useRef<CanvasWindow>({
+    onFocus: { row: 1, col: 1 },
+    nrows: 1,
+    ncols: 1,
+    rowSizes: [1.0],
+    colSizes: [1.0],
+    mvpMats: [[new Matrix4()]],
+    scales: [[1.0]],
+    images: [[getImageWidget()]],
+    widgets: [[[]]],
+  });
 
   return (
     <>
@@ -34,18 +44,29 @@ const App = () => {
         left={window.innerWidth - 100}
         top={0}
       />
-      <ImageCanvas refCanvasWindow={refCanvasWindow} />
+      <ImageCanvas
+        refCanvas={refCanvas}
+        canvasWindow={refCanvasWindow.current}
+      />
       <MenuDrawer
         isOpen={isMenuOpen}
         setIsOpen={setIsMenuOpen}
-        refCanvasWindow={refCanvasWindow}
+        gl={refCanvas.current?.getContext("webgl2")}
+        images={refImages.current}
+        widgets={refWidgets.current}
       />
       <SettingDrawer
         isOpen={isSettingOpen}
         setIsOpen={setIsSettingOpen}
-        refCanvasWindow={refCanvasWindow}
+        gl={refCanvas.current?.getContext("webgl2")}
+        images={refImages.current}
+        shaderStem={refShaderStems.current}
+        widgets={refWidgets.current}
+        canvasWindow={refCanvasWindow.current}
       />
-      <ScaleSlider />
+      {
+        // <ScaleSlider />
+      }
     </>
   );
 };

@@ -33,10 +33,12 @@ const loadedImages = new (class {
 
 const compiledShaders = new (class {
   _shaders: { [key: string]: Ishader.Shader } = {};
-  has = (shaderStem: string) => shaderStem in this._shaders;
-  get = (shaderStem: string) => this._shaders[shaderStem];
+  has = (shaderStem: string) =>
+    shaderStem.replace(SHADER_DIR, "") in this._shaders;
+  get = (shaderStem: string) =>
+    this._shaders[shaderStem.replace(SHADER_DIR, "")];
   add = (shaderStem: string, shader: Ishader.Shader) => {
-    this._shaders[shaderStem] = shader;
+    this._shaders[shaderStem.replace(SHADER_DIR, "")] = shader;
   };
 })();
 
@@ -47,7 +49,7 @@ const drawables = new (class {
     this._drawables[drawable.widget.id] = drawable;
   };
   get = (id: string) => this._drawables[id];
-  all = () => this._drawables;
+  all = () => Object.keys(this._drawables);
   remove = (gl: WebGL2RenderingContext, id: string) => {
     gl.deleteBuffer(this._drawables[id].vertexBuffer);
     this._drawables[id]?.uniformBlockBuffers?.forEach((buffer) =>
@@ -70,6 +72,7 @@ export const loadShader = (
   gl: WebGL2RenderingContext,
   shaderPath: string
 ): string[] => {
+  console.log(`Start loading shader : ${shaderPath}`);
   const stem = shaderPath.replace(SHADER_DIR, "");
   if (compiledShaders.has(stem)) {
     return compiledShaders
@@ -80,7 +83,20 @@ export const loadShader = (
   const program = _compileShader(gl, shaderPath);
   compiledShaders.add(stem, { property, program });
   const samplerNames = property.samplers.map((sampler) => sampler.name);
+  console.log("Finish loading shader.");
+  console.log(property);
   return samplerNames;
+};
+
+/**
+ */
+export const getSamplerNames = (shaderPath: string): string[] => {
+  const shader = compiledShaders.get(shaderPath);
+  if (shader == undefined) {
+    console.error(`Can not find shader : ${shaderPath}`);
+    return [];
+  }
+  return shader.property.samplers.map((sampler) => sampler.name);
 };
 
 /**
@@ -110,7 +126,7 @@ export const loadImage = (
 export const createDrawable = (
   gl: WebGL2RenderingContext,
   widget: WidgetSchema,
-  textures: { [key: string]: string }
+  textures: { [key: string]: string | undefined }
 ) => {
   if (!compiledShaders.has(widget.shaderPath)) {
     throw new Error(`Compiled shader is not found : ${widget.shaderPath}`);
@@ -187,7 +203,10 @@ export const draw = (gl: WebGL2RenderingContext) => {
     }
     const textures = [];
     for (const key in drawable.textures) {
-      textures.push(loadedImages.get(drawable.textures[key]));
+      const fileBasename = drawable.textures[key];
+      if (fileBasename != undefined && loadedImages.has(fileBasename)) {
+        textures.push(loadedImages.get(fileBasename));
+      }
     }
     _drawTexture(gl, property.samplers, textures);
     const renderMode = _getRenderMode(gl, drawable.widget.renderMode);

@@ -1,13 +1,17 @@
 import * as React from "react";
-import { CanvasWindow } from "./window";
+import { CanvasWindow, ImageProperty, ShaderProperty, Widget } from "./window";
 
 export type ImageCanvasProps = {
-  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
+  refCanvas: React.MutableRefObject<HTMLCanvasElement | null>;
+  canvasWindow: CanvasWindow;
 };
 
 export type MenuDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
+  gl: WebGL2RenderingContext | null | undefined;
+  images: ImageProperty[];
+  widgets: Widget[];
 };
 
 export type OpenDrawerButtonProps = {
@@ -27,10 +31,13 @@ export type ScaleSliderProps = {};
 export type SettingDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  widgets: React.MutableRefObject<[]>;
-  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
+  gl: WebGL2RenderingContext | null | undefined;
+  images: ImageProperty[];
+  shaderStem: ShaderProperty[];
+  widgets: Widget[];
+  canvasWindow: CanvasWindow;
 };
 
 export type WindowOperationButtonsProps = {
-  refCanvasWindow: React.MutableRefObject<CanvasWindow>;
+  canvasWindow: CanvasWindow;
 };

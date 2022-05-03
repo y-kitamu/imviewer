@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strict": true,
     "allowJs": false,
     "module": "es6",
     "target": "es6",
@@ -12,7 +16,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "strict": true,
     "paths": {
       "*": ["node_modules/*"]
     }

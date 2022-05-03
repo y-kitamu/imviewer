@@ -2,6 +2,11 @@
  * Parse header of shader scripts.
  */
 
+import {
+  VERTEX_SHADER_SOURCES,
+  SHADER_DIR,
+  FRAGMENT_SHADER_SOURCES,
+} from "../constants";
 import { Internal } from "../types/shader";
 
 // Return array : [match string, location, data type, variable name, array sizes]
@@ -11,11 +16,7 @@ const vertexInRe =
 // Return array : [match string, location, data type, variable name, arrai sizes]
 // Match pattern example : layout (location=0) uniform vec3 foo[2];
 const uniformInRe =
-  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*uniform\s+(\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
-// Return array : [match string, location, sampler type, variable name, array sizes]
-// Match pattern example : layout (location=0)uniform sampler2D foo[5];
-const samplerInRe =
-  /layout\s*\(.*location\s*=\s*(\d+).*\)\s*uniform\s+(sampler\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
+  /(?:layout\s*\(.*location\s*=\s*(\d+).*\))*\s*uniform\s+(\w+)\s+(\w+)\s*((?:\[\d+\]\s*)*)\s*;/g;
 // Return array: [match string, binding, struct name, elements string, array sizes]
 // Match pattern example :
 // layout (binding=0) uniform Foo {
@@ -45,22 +46,28 @@ export const _parseShader = (shaderPath: string): Internal.ShaderProperty => {
     uniformBlocks: [],
     samplers: [],
   };
-  ["vert", "frag", "geom"].map((suffix) => {
+  const stem = shaderPath.replace(SHADER_DIR, "");
+  [VERTEX_SHADER_SOURCES, FRAGMENT_SHADER_SOURCES].forEach((source) => {
     try {
-      const shaderSource = require(`${shaderPath}.${suffix}`);
+      const shaderSource = source[stem];
+      if (shaderSource == undefined) {
+        console.log(`No source is found : ${stem}`);
+        return;
+      }
       const res = parseShaderImpl(shaderSource);
-      parseResult.vertices.concat(res.vertices);
-      parseResult.uniforms.concat(res.uniforms);
-      parseResult.uniformBlocks.concat(res.uniformBlocks);
-      parseResult.samplers.concat(res.samplers);
+      parseResult.vertices.push(...res.vertices);
+      parseResult.uniforms.push(...res.uniforms);
+      parseResult.uniformBlocks.push(...res.uniformBlocks);
+      parseResult.samplers.push(...res.samplers);
     } catch (e) {
-      console.log(`Failed to load shader : ${shaderPath}.${suffix}`);
+      console.error(e);
+      console.log(`Failed to load shader : ${shaderPath}`);
     }
   });
 
   const unique = <T extends { [key: string]: any }>(dictArray: T[]): T[] => {
-    const uniq = new Set(dictArray.map((val) => val.location));
-    return dictArray.filter((val) => uniq.delete(val.location));
+    const uniq = new Set(dictArray.map((val) => val.name));
+    return dictArray.filter((val) => uniq.delete(val.name));
   };
 
   return {
@@ -90,13 +97,24 @@ const parseShaderImpl = (source: string): Internal.ShaderProperty => {
   }
 
   for (const match of source.matchAll(uniformInRe)) {
-    uniforms.push({
-      location: Number(match[1]),
-      dataType: match[2],
-      dataTypeSize: getDataTypeSize(match[2]),
-      arrayLength: getArraySize(match[4]),
-      name: match[3],
-    });
+    if (match[2].startsWith("sampler")) {
+      for (let i = 0; i < getArraySize(match[4]); i++) {
+        samplers.push({
+          location: Number(match[1]) + i,
+          samplerType: match[2],
+          arrayLength: 1,
+          name: match[3],
+        });
+      }
+    } else {
+      uniforms.push({
+        location: Number(match[1]),
+        dataType: match[2],
+        dataTypeSize: getDataTypeSize(match[2]),
+        arrayLength: getArraySize(match[4]),
+        name: match[3],
+      });
+    }
   }
 
   for (const match of source.matchAll(uniformBlockRe)) {
@@ -121,17 +139,6 @@ const parseShaderImpl = (source: string): Internal.ShaderProperty => {
       name: match[2],
       elements,
     });
-  }
-
-  for (const match of source.matchAll(samplerInRe)) {
-    for (let i = 0; i < getArraySize(match[4]); i++) {
-      samplers.push({
-        location: Number(match[1]) + i,
-        samplerType: match[2],
-        arrayLength: getArraySize(match[4]),
-        name: match[3],
-      });
-    }
   }
 
   return {

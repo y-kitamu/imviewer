@@ -1,5 +1,7 @@
 const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
+import { registerImage } from "../io/image";
+import { loadJson } from "../io/json";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
 
@@ -7,28 +9,37 @@ import { LoadFileButton } from "./load_file_button";
  *
  */
 export const MenuDrawer = (props: MenuDrawerProps) => {
-  const { isOpen, setIsOpen, widgets, refCanvasWindow } = props;
+  const { isOpen, setIsOpen, gl, images, widgets } = props;
 
   const setJson = async (file: File) => {
-    const json = await loadJson(file);
+    const widget = await loadJson(file);
+    widgets.push(widget);
   };
 
   const setImage = async (file: File) => {
-    const image = await loadImage(file);
+    if (gl == undefined || gl == null) {
+      console.error("Failed to get WebGL2Context");
+      return;
+    }
+    images.push(await registerImage(gl, file));
   };
 
   const onFileSelected = (
     elem: HTMLInputElement | null,
-    callback: (f: File) => void
+    callback: (f: File) => Promise<void>
   ) => {
-    if (elem == null || elem.files == null) {
-      return;
-    }
-    for (let i = 0; i < elem.files.length; i++) {
-      const file = elem.files[i];
-      callback(file);
-    }
-    setIsOpen(false);
+    (async () => {
+      if (elem == null || elem.files == null) {
+        return;
+      }
+      const promise = [];
+      for (let i = 0; i < elem.files.length; i++) {
+        const file = elem.files[i];
+        promise.push(callback(file));
+      }
+      Promise.all(promise);
+      setIsOpen(false);
+    })();
   };
 
   const menuList = (
@@ -38,7 +49,7 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
           text="Load JSON"
           accept=".json"
           onChange={(elem: HTMLInputElement | null) =>
-            onFileSelected(elem, loadJson)
+            onFileSelected(elem, setJson)
           }
         />
       </ListItem>
@@ -47,7 +58,7 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
           text="Load Image"
           accept="image/*"
           onChange={(elem: HTMLInputElement | null) =>
-            onFileSelected(elem, loadImage)
+            onFileSelected(elem, setImage)
           }
         />
       </ListItem>

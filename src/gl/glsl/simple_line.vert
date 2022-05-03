@@ -2,13 +2,12 @@
 layout (location=0) in vec3 aPos;
 layout (location=1) in vec3 aColor;
 
-layout (std140) uniform matrix {
-    mat4 mvp[2];
-} mat;
+uniform mat4 mvp[2];
+uniform float scale[2];
 
 out vec3 fragColor;
 
 void main() {
     fragColor = aColor;
-    gl_Position = mat.mvp[gl_VertexID % 2] * vec4(aPos, 1.0);
+    gl_Position = mvp[gl_VertexID % 2] * vec4(aPos, 1.0) / scale[gl_VertexID % 2];
 }

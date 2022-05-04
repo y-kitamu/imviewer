@@ -9,10 +9,14 @@ export type CanvasWindow = {
   ncols: number;
   rowSizes: number[]; // sum(rowSizes) should be 1.0
   colSizes: number[]; // sum(colSizes) should be 1.0
-  mvpMats: Matrix4[][];
-  scales: number[][];
-  images: ImageWidget[][];
-  widgets: Widget[][][];
+  subWindows: SubWindow[][];
+};
+
+export type SubWindow = {
+  image: ImageWidget;
+  mvpMat: Matrix4;
+  scale: number;
+  widgets: Widget[];
 };
 
 export type Widget = WidgetSchema & {

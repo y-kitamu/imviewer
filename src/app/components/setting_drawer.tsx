@@ -1,5 +1,6 @@
 const React = require("react");
 import { useEffect, useState } from "react";
+import { Matrix4 } from "three";
 import {
   Drawer,
   FormControl,
@@ -7,17 +8,25 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Typography,
 } from "@mui/material";
 import { SettingDrawerProps } from "../types/props";
-import { CanvasWindow, ImageProperty, ImageWidget } from "../types/window";
+import {
+  CanvasWindow,
+  ImageProperty,
+  ImageWidget,
+  SubWindow,
+} from "../types/window";
 import { createDrawable, getSamplerNames, removeDrawable } from "../../gl/gl";
 import { DEFAULT_SHADERS } from "../constants";
+import { getImageUniforms, getImageVertices } from "../canvas_window";
 
 export const SettingDrawer = (props: SettingDrawerProps) => {
   const { isOpen, setIsOpen, gl, images, shaderStem, widgets, canvasWindow } =
     props;
 
   if (gl == undefined || gl == null) {
+    console.log("WebGL context is null");
     return <></>;
   }
 
@@ -45,13 +54,13 @@ const ImageSelectors = (props: {
   const [focusedCol, setFocusedCol] = useState<number>(0);
 
   const getSamplerKeys = () => {
-    let textures = canvasWindow.images[focusedRow][focusedCol]?.textures;
+    let textures =
+      canvasWindow.subWindows[focusedRow][focusedCol]?.image.textures;
     if (textures != undefined) {
       return Object.keys(textures);
     }
     return getSamplerNames(DEFAULT_SHADERS.image);
   };
-
   const [keys, setKeys] = useState<string[]>(getSamplerKeys());
 
   useEffect(() => {
@@ -60,37 +69,52 @@ const ImageSelectors = (props: {
   }, [focusedRow, focusedCol]);
 
   const selectors = keys.map((key) => {
-    const image = canvasWindow.images[focusedRow][focusedCol];
+    const subWindow = canvasWindow.subWindows[focusedRow][focusedCol];
     return (
       <ImageSelector
         key={key}
         gl={gl}
         texKey={key}
-        image={image}
         images={images}
+        subWindow={subWindow}
       />
     );
   });
 
-  return <>{selectors}</>;
+  return (
+    <>
+      {" "}
+      <Typography>Image</Typography>
+      {selectors}
+    </>
+  );
 };
 
 const ImageSelector = (props: {
   gl: WebGL2RenderingContext;
   texKey: string;
-  image: ImageWidget;
   images: ImageProperty[];
+  subWindow: SubWindow;
 }) => {
-  const { gl, texKey, image, images } = props;
-  const [value, setValue] = useState<string | undefined>(
-    image.textures[texKey]
+  const { gl, texKey, images, subWindow } = props;
+  const [value, setValue] = useState<string>(
+    subWindow.image.textures[texKey] || ""
   );
 
-  console.log(`image = ${image}`);
   const handleChange = (event: SelectChangeEvent) => {
+    // update react state
     const val = event.target.value as string;
     setValue(val);
+    // update WebGL state
+    const imageProperty = images.find((img) => img.fileBasename == val);
+    if (imageProperty == undefined) {
+      console.error(`Failed to get image property : ${val}`);
+      return;
+    }
+    const image = subWindow.image;
     image.textures[texKey] = val;
+    image.vertices = getImageVertices(imageProperty);
+    image.uniforms = getImageUniforms(imageProperty, subWindow.mvpMat);
     removeDrawable(gl, image.id);
     createDrawable(gl, image, image.textures);
   };
@@ -102,17 +126,19 @@ const ImageSelector = (props: {
   ));
 
   return (
-    <FormControl>
-      <InputLabel id={`image-select-label-${texKey}`}>{texKey}</InputLabel>
-      <Select
-        labelId={`image-select-label-${texKey}`}
-        id="simple-select"
-        value={value}
-        label={texKey}
-        onChange={handleChange}
-      >
-        {items}
-      </Select>
-    </FormControl>
+    <>
+      <FormControl>
+        <InputLabel id={`image-select-label-${texKey}`}>{texKey}</InputLabel>
+        <Select
+          labelId={`image-select-label-${texKey}`}
+          id="simple-select"
+          value={value}
+          label={texKey}
+          onChange={handleChange}
+        >
+          {items}
+        </Select>
+      </FormControl>
+    </>
   );
 };

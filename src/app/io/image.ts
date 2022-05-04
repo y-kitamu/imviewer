@@ -1,13 +1,16 @@
 import { basename } from "../lib";
-import { loadImage } from "../../gl/gl";
+import { isImageLoaded, loadImage } from "../../gl/gl";
 import { ImageProperty } from "../types/window";
 
 export const registerImage = async (
   gl: WebGL2RenderingContext,
   inputFile: File
-): Promise<ImageProperty> => {
+): Promise<ImageProperty | undefined> => {
   const image = await readImage(inputFile);
-  const fileBasename = basename(image.src);
+  const fileBasename = basename(inputFile.name);
+  if (isImageLoaded(fileBasename)) {
+    return;
+  }
   loadImage(gl, fileBasename, image);
   return {
     fileBasename,

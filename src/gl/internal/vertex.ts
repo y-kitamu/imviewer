@@ -61,7 +61,6 @@ export const _drawVertices = (
   buffer: WebGLBuffer
 ) => {
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
   let numElem = _calcNumberOfElements(vertexProperties);
   let offset = 0;
   for (const vert of vertexProperties) {
@@ -72,7 +71,7 @@ export const _drawVertices = (
       gl.FLOAT,
       false,
       numElem * FLOAT_BYTE_SIZE,
-      offset
+      offset * FLOAT_BYTE_SIZE
     );
     gl.enableVertexAttribArray(vert.location);
     offset += elemSize;

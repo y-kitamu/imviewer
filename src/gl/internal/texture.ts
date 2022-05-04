@@ -1,9 +1,21 @@
 import { Internal } from "../types/shader";
 
+const textureIndex = new (class {
+  _index = 0;
+  get = () => this._index;
+  update = () => this._index++;
+})();
+
 export const _prepareTexture = (
   gl: WebGL2RenderingContext,
   image: HTMLImageElement
-) => {
+): Internal.TextureProperty => {
+  const textureEnum = `TEXTURE${textureIndex.get()}`;
+  if (!(textureEnum in WebGL2RenderingContext)) {
+    throw new Error(`Invalid textureId = ${textureEnum}`);
+  }
+  const textureId = gl[textureEnum as keyof WebGL2RenderingContext] as number;
+  gl.activeTexture(textureId);
   const texture = gl.createTexture();
   if (texture == null) {
     throw new Error("Failed to create texture");
@@ -17,17 +29,18 @@ export const _prepareTexture = (
     gl.LINEAR_MIPMAP_NEAREST
   );
   gl.generateMipmap(gl.TEXTURE_2D);
-  return texture;
+  return {
+    id: textureId,
+    obj: texture,
+  };
 };
 
 export const _drawTexture = (
   gl: WebGL2RenderingContext,
-  samplerProperties: Internal.SamplerProperty[],
-  textures: WebGLTexture[]
+  textures: Internal.TextureProperty[]
 ) => {
-  for (let i = 0; i < samplerProperties.length; i++) {
-    const sampler = samplerProperties[i];
-    gl.activeTexture(sampler.location);
-    gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+  for (const texture of textures) {
+    gl.activeTexture(texture.id);
+    gl.bindTexture(gl.TEXTURE_2D, texture.obj);
   }
 };

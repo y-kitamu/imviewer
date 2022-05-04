@@ -30,10 +30,16 @@ const App = () => {
     ncols: 1,
     rowSizes: [1.0],
     colSizes: [1.0],
-    mvpMats: [[new Matrix4()]],
-    scales: [[1.0]],
-    images: [[getImageWidget()]],
-    widgets: [[[]]],
+    subWindows: [
+      [
+        {
+          image: getImageWidget(),
+          mvpMat: new Matrix4(),
+          scale: 1.0,
+          widgets: [],
+        },
+      ],
+    ],
   });
 
   return (

@@ -1,10 +1,12 @@
 import { Matrix4 } from "three";
 import { DEFAULT_SHADERS } from "./constants";
 import { getSamplerNames } from "../gl/gl";
+import { UniformSchema, VertexSchema } from "../gl/types/schemas";
 import {
   CanvasWindow,
   ImageProperty,
   ImageWidget,
+  SubWindow,
   Widget,
 } from "./types/window";
 
@@ -18,15 +20,10 @@ export const addRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
   }
   canvasWindow.rowSizes.splice(rowIdx, 0, factor);
 
-  const rowMvpMats = Array(canvasWindow.ncols).fill(new Matrix4());
-  const rowScales = Array(canvasWindow.ncols).fill(1.0);
-  const rowWidgets: Widget[][] = Array(canvasWindow.ncols).fill([]);
-  const rowImages: ImageWidget[] = Array(canvasWindow.ncols);
-  canvasWindow.mvpMats.splice(rowIdx, 0, rowMvpMats);
-  canvasWindow.scales.splice(rowIdx, 0, rowScales);
-  canvasWindow.widgets.splice(rowIdx, 0, rowWidgets);
-  canvasWindow.images.splice(rowIdx, 0, rowImages);
-
+  const subwindows: SubWindow[] = Array(canvasWindow.ncols).fill(
+    createSubWindow()
+  );
+  canvasWindow.subWindows.splice(rowIdx, 0, subwindows);
   canvasWindow.nrows++;
 };
 
@@ -38,10 +35,7 @@ export const addCol = (canvasWindow: CanvasWindow, colIdx: number) => {
   const factor = 1.0 / canvasWindow.ncols;
   for (let i = 0; i < canvasWindow.ncols; i++) {
     canvasWindow.colSizes[i] *= 1.0 - factor;
-    canvasWindow.mvpMats[i].splice(colIdx, 0, new Matrix4());
-    canvasWindow.scales[i].splice(colIdx, 0, 1.0);
-    canvasWindow.widgets[i].splice(colIdx, 0, []);
-    canvasWindow.images[i].splice(colIdx, 0, getImageWidget());
+    canvasWindow.subWindows[i].splice(colIdx, 0, createSubWindow());
   }
   canvasWindow.colSizes.splice(colIdx, 0, factor);
 
@@ -53,10 +47,7 @@ export const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
     return;
   }
   canvasWindow.rowSizes.splice(rowIdx, 1);
-  canvasWindow.mvpMats.splice(rowIdx, 1);
-  canvasWindow.scales.splice(rowIdx, 1);
-  canvasWindow.images.splice(rowIdx, 1);
-  canvasWindow.widgets.splice(rowIdx, 1);
+  canvasWindow.subWindows.splice(rowIdx, 1);
 
   canvasWindow.nrows--;
 };
@@ -66,35 +57,52 @@ export const deletCol = (canvasWindow: CanvasWindow, colIdx: number) => {
     return;
   }
   for (let i = 0; i < canvasWindow.ncols; i++) {
-    canvasWindow.mvpMats.splice(colIdx, 1);
-    canvasWindow.scales.splice(colIdx, 1);
-    canvasWindow.images.splice(colIdx, 1);
-    canvasWindow.widgets.splice(colIdx, 1);
+    canvasWindow.subWindows[i].splice(colIdx, 1);
   }
   canvasWindow.colSizes.splice(colIdx, 1);
 
   canvasWindow.ncols--;
 };
 
+export const createSubWindow = (): SubWindow => {
+  return {
+    image: getImageWidget(),
+    mvpMat: new Matrix4(),
+    scale: 1.0,
+    widgets: [],
+  };
+};
+
 export const getImageWidget = (
   shader: string = DEFAULT_SHADERS.image,
-  imageProperty: ImageProperty = { fileBasename: "", width: 0, height: 0 }
+  imageProperty: ImageProperty = { fileBasename: "", width: 0, height: 0 },
+  textures: { [key: string]: string | undefined } = {},
+  mvpMat: Matrix4 = new Matrix4()
 ): ImageWidget => {
-  const textures: { [key: string]: string | undefined } = {};
   const keys = getSamplerNames(shader);
   for (const key of keys) {
-    textures[key] = undefined;
+    if (!(key in textures)) {
+      textures[key] = undefined;
+    }
   }
-  const { width, height } = imageProperty;
 
-  // prettier-ignore
   return {
     id: String(Math.random()),
     shaderPath: shader,
     renderMode: "TRIANGLE_STRIP",
     partsType: "image",
     textures,
-    vertices: [
+    vertices: getImageVertices(imageProperty),
+    uniforms: getImageUniforms(imageProperty, mvpMat),
+  };
+};
+
+export const getImageVertices = (
+  imageProperty: ImageProperty
+): VertexSchema[] => {
+  const { width, height } = imageProperty;
+  // prettier-ignore
+  return [
       {
         variableName: "aPos",
         data: [
@@ -107,6 +115,22 @@ export const getImageWidget = (
         variableName: "aTexCoord",
         data: [0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0],
       },
-    ],
-  };
+  ];
+};
+
+export const getImageUniforms = (
+  imageProperty: ImageProperty,
+  mvpMat: Matrix4 = new Matrix4()
+): UniformSchema[] => {
+  const { width, height } = imageProperty;
+  return [
+    {
+      variableName: "scale",
+      data: [Math.max(width, height)],
+    },
+    {
+      variableName: "mvp",
+      data: mvpMat.elements,
+    },
+  ];
 };

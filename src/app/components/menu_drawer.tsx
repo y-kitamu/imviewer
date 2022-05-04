@@ -21,7 +21,10 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
       console.error("Failed to get WebGL2Context");
       return;
     }
-    images.push(await registerImage(gl, file));
+    const newImage = await registerImage(gl, file);
+    if (newImage != undefined) {
+      images.push(newImage);
+    }
   };
 
   const onFileSelected = (

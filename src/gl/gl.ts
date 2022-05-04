@@ -1,3 +1,4 @@
+import { Matrix4 } from "three";
 import { SHADER_DIR } from "./constants";
 import { _compileShader } from "./internal/compiler";
 import { _parseShader } from "./internal/parser";
@@ -19,10 +20,10 @@ import { Internal as Ishader } from "./types/shader";
 // Internal states
 
 const loadedImages = new (class {
-  _images: { [fileBasename: string]: WebGLTexture } = {};
+  _images: { [fileBasename: string]: Ishader.TextureProperty } = {};
   has = (fileBasename: string) => fileBasename in this._images;
   get = (fileBasename: string) => this._images[fileBasename];
-  add = (fileBasename: string, texture: WebGLTexture) => {
+  add = (fileBasename: string, texture: Ishader.TextureProperty) => {
     this._images[fileBasename] = texture;
   };
   remove = (gl: WebGL2RenderingContext, fileBasename: string) => {
@@ -93,10 +94,17 @@ export const loadShader = (
 export const getSamplerNames = (shaderPath: string): string[] => {
   const shader = compiledShaders.get(shaderPath);
   if (shader == undefined) {
-    console.error(`Can not find shader : ${shaderPath}`);
-    return [];
+    const property = _parseShader(shaderPath);
+    console.log(`Can not find shader : ${shaderPath}`);
+    return property.samplers.map((sampler) => sampler.name);
   }
   return shader.property.samplers.map((sampler) => sampler.name);
+};
+
+/**
+ */
+export const isImageLoaded = (fileBasename: string) => {
+  return loadedImages.has(fileBasename);
 };
 
 /**
@@ -115,6 +123,8 @@ export const loadImage = (
   }
   const texture = _prepareTexture(gl, image);
   loadedImages.add(fileBasename, texture);
+  console.log(`add image : basename = ${fileBasename},`);
+  console.log(texture);
 };
 
 /**
@@ -166,6 +176,8 @@ export const createDrawable = (
     );
   }
   drawables.add(drawable);
+  console.log("create drawable : ");
+  console.log(drawable);
 };
 
 /**
@@ -187,13 +199,25 @@ export const removeDrawable = (
  * @param gl
  */
 export const draw = (gl: WebGL2RenderingContext) => {
-  for (const key in drawables.all()) {
+  for (const key of drawables.all()) {
     const drawable = drawables.get(key);
+    gl.useProgram(drawable.shader.program);
+
     const property = drawable.shader.property;
     _drawVertices(gl, property.vertices, drawable.vertexBuffer);
     if (drawable.widget.uniforms != undefined) {
-      _drawUniformVariables(gl, drawable.widget.uniforms, property.uniforms);
+      _drawUniformVariables(
+        gl,
+        drawable.shader.program,
+        drawable.widget.uniforms,
+        property.uniforms
+      );
+    } else if (property.uniforms.length > 0) {
+      throw new Error(
+        `Uniform variables are empty : widget.id = ${drawable.widget.id}`
+      );
     }
+
     if (drawable.uniformBlockBuffers) {
       _drawUniformBlocks(
         gl,
@@ -208,8 +232,10 @@ export const draw = (gl: WebGL2RenderingContext) => {
         textures.push(loadedImages.get(fileBasename));
       }
     }
-    _drawTexture(gl, property.samplers, textures);
+    _drawTexture(gl, textures);
     const renderMode = _getRenderMode(gl, drawable.widget.renderMode);
     gl.drawArrays(renderMode, 0, drawable.numVertex);
+
+    gl.useProgram(null);
   }
 };

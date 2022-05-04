@@ -40,9 +40,14 @@ export namespace Internal {
   };
 
   export type SamplerProperty = {
-    location: number;
+    location: number | undefined;
     samplerType: string;
     arrayLength: number;
     name: string;
+  };
+
+  export type TextureProperty = {
+    id: number;
+    obj: WebGLTexture;
   };
 }

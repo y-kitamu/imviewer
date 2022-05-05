@@ -4,9 +4,9 @@ import { getSamplerNames } from "../gl/gl";
 import { UniformSchema, VertexSchema } from "../gl/types/schemas";
 import {
   CanvasWindow,
+  CoordinateParams,
   ImageProperty,
   ImageWidget,
-  SubWindow,
   Widget,
 } from "./types/window";
 
@@ -64,21 +64,23 @@ export const deletCol = (canvasWindow: CanvasWindow, colIdx: number) => {
   canvasWindow.ncols--;
 };
 
-export const createSubWindow = (): SubWindow => {
-  return {
-    image: getImageWidget(),
-    mvpMat: new Matrix4(),
-    scale: 1.0,
-    widgets: [],
-  };
-};
-
-export const getImageWidget = (
+export const getDefaultImageWidget = (
   shader: string = DEFAULT_SHADERS.image,
-  imageProperty: ImageProperty = { fileBasename: "", width: 0, height: 0 },
-  textures: { [key: string]: string | undefined } = {},
-  mvpMat: Matrix4 = new Matrix4()
+  row: number = 0,
+  col: number = 0
 ): ImageWidget => {
+  const imageProperty: ImageProperty = {
+    fileBasename: "",
+    width: 1.0,
+    height: 1.0,
+  };
+
+  const coords: CoordinateParams = {
+    scale: 1.0,
+    mvpMat: new Matrix4(),
+  };
+
+  const textures: { [key: string]: string | undefined } = {};
   const keys = getSamplerNames(shader);
   for (const key of keys) {
     if (!(key in textures)) {
@@ -88,12 +90,15 @@ export const getImageWidget = (
 
   return {
     id: String(Math.random()),
+    row,
+    col,
     shaderPath: shader,
     renderMode: "TRIANGLE_STRIP",
     partsType: "image",
     textures,
     vertices: getImageVertices(imageProperty),
     uniforms: getImageUniforms(imageProperty, mvpMat),
+    coords,
   };
 };
 

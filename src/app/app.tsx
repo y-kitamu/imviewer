@@ -1,10 +1,8 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { Matrix4 } from "three";
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
-import { ScaleSlider } from "./components/scale_slider";
 import { SettingDrawer } from "./components/setting_drawer";
 import {
   CanvasWindow,
@@ -13,7 +11,6 @@ import {
   Widget,
 } from "./types/window";
 import { DEFAULT_SHADER_PROPERTIES } from "./constants";
-import { getImageWidget } from "./canvas_window";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
@@ -25,21 +22,13 @@ const App = () => {
   );
   const refWidgets = React.useRef<Widget[]>([]);
   const refCanvasWindow = React.useRef<CanvasWindow>({
-    onFocus: { row: 1, col: 1 },
+    onFocus: { row: 0, col: 0 },
     nrows: 1,
     ncols: 1,
     rowSizes: [1.0],
     colSizes: [1.0],
-    subWindows: [
-      [
-        {
-          image: getImageWidget(),
-          mvpMat: new Matrix4(),
-          scale: 1.0,
-          widgets: [],
-        },
-      ],
-    ],
+    images: [],
+    widgets: [],
   });
 
   return (

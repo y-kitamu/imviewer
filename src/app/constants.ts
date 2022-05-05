@@ -1,7 +1,6 @@
 import { RenderMode } from "../gl/types/schemas";
 import { SHADER_DIR } from "../gl/constants";
-import { PartsType } from "./types/json";
-import { ShaderProperty } from "./types/window";
+import { PartsType, ShaderProperty } from "./types/io";
 
 export const SCALE_SLIDER_FACTOR = 10;
 

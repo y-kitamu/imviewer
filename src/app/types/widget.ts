@@ -11,9 +11,9 @@ import { ImageProperty, PartsType } from "./io";
  */
 export type Widget = WidgetSchema & {
   partsType: PartsType;
-  row: number;
-  col: number;
-  scale: number;
+  row: number[];
+  col: number[];
+  scale: { [key: string]: number }; // key: uniform variable name, value : scale (number)
   mvpMats: { [key: string]: Matrix4 }; // key : uniform variable name, value: mvp matrix
   textures: { [key: string]: ImageProperty }; // key : file basename, value: variable name
 };

@@ -1,6 +1,7 @@
 import { basename } from "../lib";
 import { isImageLoaded, loadImage } from "../../gl/gl";
-import { ImageProperty } from "../types/window";
+import { ImageProperty } from "../types/io";
+import { Matrix4 } from "three";
 
 export const registerImage = async (
   gl: WebGL2RenderingContext,
@@ -18,6 +19,14 @@ export const registerImage = async (
     height: image.height,
   };
 };
+
+export const convertImagePropertyToImage = (
+  imageProperty: ImageProperty,
+  row: number,
+  col: number,
+  scale?: { [key: string]: number },
+  mvpMats?: { [key: string]: Matrix4 }
+) => {};
 
 const readImage = (inputFile: File) =>
   new Promise<HTMLImageElement>((resolve, reject) => {

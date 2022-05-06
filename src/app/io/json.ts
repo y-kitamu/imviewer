@@ -1,8 +1,13 @@
-import { UniformSchema } from "../../gl/types/schemas";
-import { Widget } from "../types/widget";
-import { ImageProperty, JsonSchema } from "../types/io";
-import { DEFAULT_RENDER_MODE, DEFAULT_SHADERS } from "../constants";
 import { Matrix4 } from "three";
+import { UniformSchema } from "../../gl/types/schemas";
+import { ImageProperty, JsonSchema } from "../types/io";
+import { Widget } from "../types/widget";
+import {
+  DEFAULT_RENDER_MODE,
+  DEFAULT_SHADERS,
+  MVP_VARNAME,
+  SCALE_VARNAME,
+} from "../constants";
 
 export const loadJson = (inputFile: File) =>
   new Promise<JsonSchema[]>((resolve, reject) => {
@@ -25,34 +30,75 @@ export const loadJson = (inputFile: File) =>
     reader.readAsText(inputFile);
   });
 
-export const convertJsonSchemaToWidget = (
+export const convertJsonSchemaToPoint = (
   schema: JsonSchema,
   imageProperty: ImageProperty,
-  mvpMats: { [key: string]: Matrix4 } = {},
-  row: number = 0,
-  col: number = 0
+  row: number,
+  col: number,
+  scale?: { [key: string]: number },
+  mvpMats?: { [key: string]: Matrix4 }
 ): Widget => {
   const shaderPath = DEFAULT_SHADERS[schema.partsType];
   const renderMode = schema.renderMode
     ? schema.renderMode
     : DEFAULT_RENDER_MODE[schema.partsType];
 
-  switch (schema.partsType) {
-    case "image" || "point" || "arrow":
-      if (mvpMats["mvp"] == undefined) {
-        mvpMats["mvp"] = new Matrix4();
-      }
-      break;
-    case "line":
-      if (mvpMats["mvp[0]"] == undefined) {
-        mvpMats["mvp[0]"] = new Matrix4();
-      }
-      if (mvpMats["mvp[1]"] == undefined) {
-        mvpMats["mvp[1]"] = new Matrix4();
-      }
-      break;
+  if (mvpMats == undefined) {
+    mvpMats = { [MVP_VARNAME]: new Matrix4() };
   }
-  const scale = Math.max(imageProperty.width, imageProperty.height);
+  if (scale == undefined) {
+    scale = {
+      [SCALE_VARNAME]: Math.max(imageProperty.width, imageProperty.height),
+    };
+  }
+  const uniforms = getUniformSchema(mvpMats, scale);
+  return {
+    id: String(Math.random()),
+    renderMode,
+    shaderPath,
+    vertices: schema.datas,
+    uniforms,
+    partsType: schema.partsType,
+    row: [row],
+    col: [col],
+    scale,
+    mvpMats,
+    textures: {},
+  };
+};
+
+export const convertJsonSchemaToLine = (
+  schema: JsonSchema,
+  row: number[],
+  col: number[],
+  scaleArr: { [key: string]: number }[],
+  mvpMatsArr: { [key: string]: Matrix4 }[]
+): Widget => {
+  if (
+    row.length < 2 ||
+    col.length < 2 ||
+    scaleArr.length < 2 ||
+    mvpMatsArr.length < 2
+  ) {
+    throw new Error(
+      "Invalid argument : length of `row`, `col`, `scaleArr` and `mvpMatsArr`" +
+        " must be equal or greater than 2."
+    );
+  }
+
+  const shaderPath = DEFAULT_SHADERS[schema.partsType];
+  const renderMode = schema.renderMode
+    ? schema.renderMode
+    : DEFAULT_RENDER_MODE[schema.partsType];
+
+  const mvpMats = {
+    [MVP_VARNAME + "[0]"]: mvpMatsArr[0][MVP_VARNAME],
+    [MVP_VARNAME + "[1]"]: mvpMatsArr[1][MVP_VARNAME],
+  };
+  const scale = {
+    [SCALE_VARNAME + "[0]"]: scaleArr[0][SCALE_VARNAME],
+    [SCALE_VARNAME + "[1]"]: scaleArr[1][SCALE_VARNAME],
+  };
   const uniforms = getUniformSchema(mvpMats, scale);
 
   return {
@@ -72,8 +118,23 @@ export const convertJsonSchemaToWidget = (
 
 export const getUniformSchema = (
   mvpMats: { [key: string]: Matrix4 },
-  scale: number,
+  scale: { [key: string]: number },
   uniforms: UniformSchema[] = []
 ): UniformSchema[] => {
-  return [];
+  uniforms = uniforms.filter((uniform) => {
+    return !(uniform.variableName in mvpMats || uniform.variableName in scale);
+  });
+  for (const key in mvpMats) {
+    uniforms.push({
+      variableName: key,
+      data: mvpMats[key].elements,
+    });
+  }
+  for (const key in scale) {
+    uniforms.push({
+      variableName: key,
+      data: [scale[key]],
+    });
+  }
+  return uniforms;
 };

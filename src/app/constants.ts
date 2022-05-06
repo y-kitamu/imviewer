@@ -33,3 +33,6 @@ export const DEFAULT_SHADER_PROPERTIES: ShaderProperty[] = [
     shaderStem: `${SHADER_DIR}simple_arrow`,
   },
 ];
+
+export const MVP_VARNAME = "mvp";
+export const SCALE_VARNAME = "scale";

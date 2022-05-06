@@ -1,7 +1,7 @@
 import { Matrix4 } from "three";
 import { UniformSchema } from "../../gl/types/schemas";
+import { Widget } from "../../app/types/widget";
 import { ImageProperty, JsonSchema } from "../types/io";
-import { Widget } from "../types/widget";
 import {
   DEFAULT_RENDER_MODE,
   DEFAULT_SHADERS,
@@ -9,7 +9,7 @@ import {
   SCALE_VARNAME,
 } from "../constants";
 
-export const loadJson = (inputFile: File) =>
+export const _loadJson = (inputFile: File) =>
   new Promise<JsonSchema[]>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event: ProgressEvent<FileReader>) => {
@@ -30,7 +30,7 @@ export const loadJson = (inputFile: File) =>
     reader.readAsText(inputFile);
   });
 
-export const convertJsonSchemaToPoint = (
+export const _convertJsonSchemaToPoint = (
   schema: JsonSchema,
   imageProperty: ImageProperty,
   row: number,
@@ -51,7 +51,7 @@ export const convertJsonSchemaToPoint = (
       [SCALE_VARNAME]: Math.max(imageProperty.width, imageProperty.height),
     };
   }
-  const uniforms = getUniformSchema(mvpMats, scale);
+  const uniforms = _getUniformSchema(mvpMats, scale);
   return {
     id: String(Math.random()),
     renderMode,
@@ -67,7 +67,7 @@ export const convertJsonSchemaToPoint = (
   };
 };
 
-export const convertJsonSchemaToLine = (
+export const _convertJsonSchemaToLine = (
   schema: JsonSchema,
   row: number[],
   col: number[],
@@ -99,7 +99,7 @@ export const convertJsonSchemaToLine = (
     [SCALE_VARNAME + "[0]"]: scaleArr[0][SCALE_VARNAME],
     [SCALE_VARNAME + "[1]"]: scaleArr[1][SCALE_VARNAME],
   };
-  const uniforms = getUniformSchema(mvpMats, scale);
+  const uniforms = _getUniformSchema(mvpMats, scale);
 
   return {
     id: String(Math.random()),
@@ -116,7 +116,7 @@ export const convertJsonSchemaToLine = (
   };
 };
 
-export const getUniformSchema = (
+export const _getUniformSchema = (
   mvpMats: { [key: string]: Matrix4 },
   scale: { [key: string]: number },
   uniforms: UniformSchema[] = []

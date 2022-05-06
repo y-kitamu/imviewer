@@ -4,7 +4,7 @@
 
 import { Matrix4 } from "three";
 import { WidgetSchema } from "../../gl/types/schemas";
-import { ImageProperty, PartsType } from "./io";
+import { ImageProperty, PartsType } from "../../io/types/io";
 
 /**
  * Properties of rendering objects (point, line, image, etc.)

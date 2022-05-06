@@ -1,15 +1,11 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
+import { ImageProperty, ShaderProperty } from "../io/types/io";
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
 import { SettingDrawer } from "./components/setting_drawer";
-import {
-  CanvasWindow,
-  ImageProperty,
-  ShaderProperty,
-  Widget,
-} from "./types/window";
+import { CanvasWindow } from "./types/window";
 import { DEFAULT_SHADER_PROPERTIES } from "./constants";
 
 const App = () => {

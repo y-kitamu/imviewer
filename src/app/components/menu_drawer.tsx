@@ -1,7 +1,6 @@
 const React = require("react");
 import { Drawer, List, ListItem } from "@mui/material";
-import { registerImage } from "../io/image";
-import { loadJson } from "../io/json";
+import { loadImage, loadJson } from "../../io/io";
 import { MenuDrawerProps } from "../types/props";
 import { LoadFileButton } from "./load_file_button";
 
@@ -9,11 +8,13 @@ import { LoadFileButton } from "./load_file_button";
  *
  */
 export const MenuDrawer = (props: MenuDrawerProps) => {
-  const { isOpen, setIsOpen, gl, images, widgets } = props;
+  const { isOpen, setIsOpen, gl, images, jsons } = props;
 
   const setJson = async (file: File) => {
-    const widget = await loadJson(file);
-    widgets.push(widget);
+    if (file.name in jsons) {
+      return;
+    }
+    jsons[file.name] = await loadJson(file);
   };
 
   const setImage = async (file: File) => {
@@ -21,7 +22,7 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
       console.error("Failed to get WebGL2Context");
       return;
     }
-    const newImage = await registerImage(gl, file);
+    const newImage = await loadImage(gl, file);
     if (newImage != undefined) {
       images.push(newImage);
     }

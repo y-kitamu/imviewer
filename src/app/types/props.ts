@@ -1,5 +1,6 @@
 import * as React from "react";
-import { CanvasWindow, ImageProperty, ShaderProperty, Widget } from "./window";
+import { ImageProperty, JsonSchema, ShaderProperty } from "../../io/types/io";
+import { CanvasWindow } from "./window";
 
 export type ImageCanvasProps = {
   refCanvas: React.MutableRefObject<HTMLCanvasElement | null>;
@@ -11,7 +12,7 @@ export type MenuDrawerProps = {
   setIsOpen: (val: boolean) => void;
   gl: WebGL2RenderingContext | null | undefined;
   images: ImageProperty[];
-  widgets: Widget[];
+  jsons: { [key: string]: JsonSchema[] };
 };
 
 export type OpenDrawerButtonProps = {
@@ -34,7 +35,7 @@ export type SettingDrawerProps = {
   gl: WebGL2RenderingContext | null | undefined;
   images: ImageProperty[];
   shaderStem: ShaderProperty[];
-  widgets: Widget[];
+  jsons: { [key: string]: JsonSchema[] };
   canvasWindow: CanvasWindow;
 };
 

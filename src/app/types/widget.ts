@@ -8,6 +8,7 @@ import { ImageProperty, PartsType } from "../../io/types/io";
 
 /**
  * Properties of rendering objects (point, line, image, etc.)
+ * TODO : move to io/types (?)
  */
 export type Widget = WidgetSchema & {
   partsType: PartsType;

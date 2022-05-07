@@ -90,6 +90,9 @@ export const loadShader = (
 };
 
 /**
+ * Get sampler variable names in shader source code `shaderPath`.
+ * @param shaderPath Target shader source path (exclude extension)
+ * @returns (string[]) List of sampler variable names.
  */
 export const getSamplerNames = (shaderPath: string): string[] => {
   const shader = compiledShaders.get(shaderPath);

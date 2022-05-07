@@ -1,12 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { ImageProperty, ShaderProperty } from "../io/types/io";
+import { ImageProperty, JsonSchema, ShaderProperty } from "../io/types/io";
+import { DEFAULT_SHADER_PROPERTIES } from "../io/constants";
+// components
 import { MenuDrawer } from "./components/menu_drawer";
 import { ImageCanvas } from "./components/image_canvas";
 import { OpenDrawerButton } from "./components/open_menu_button";
 import { SettingDrawer } from "./components/setting_drawer";
 import { CanvasWindow } from "./types/window";
-import { DEFAULT_SHADER_PROPERTIES } from "./constants";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
@@ -16,7 +17,8 @@ const App = () => {
   const refShaderStems = React.useRef<ShaderProperty[]>(
     DEFAULT_SHADER_PROPERTIES
   );
-  const refWidgets = React.useRef<Widget[]>([]);
+  // key: filename (basename), value : json schemas in the file
+  const refJsonSchemas = React.useRef<{ [key: string]: JsonSchema[] }>({});
   const refCanvasWindow = React.useRef<CanvasWindow>({
     onFocus: { row: 0, col: 0 },
     nrows: 1,
@@ -44,7 +46,7 @@ const App = () => {
         setIsOpen={setIsMenuOpen}
         gl={refCanvas.current?.getContext("webgl2")}
         images={refImages.current}
-        widgets={refWidgets.current}
+        jsons={refJsonSchemas.current}
       />
       <SettingDrawer
         isOpen={isSettingOpen}
@@ -52,7 +54,7 @@ const App = () => {
         gl={refCanvas.current?.getContext("webgl2")}
         images={refImages.current}
         shaderStem={refShaderStems.current}
-        widgets={refWidgets.current}
+        jsons={refJsonSchemas.current}
         canvasWindow={refCanvasWindow.current}
       />
       {

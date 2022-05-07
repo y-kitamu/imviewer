@@ -3,7 +3,6 @@ import platform from "platform";
 import { isImageLoaded, loadImage } from "../../gl/gl";
 import { Widget } from "../../app/types/widget";
 import { ImageProperty, JsonSchema } from "../types/io";
-import { DEFAULT_SHADERS, MVP_VARNAME } from "../constants";
 import { _convertJsonSchemaToPoint } from "./json";
 
 export const _loadImage = async (
@@ -75,6 +74,7 @@ const _getDefaultImageJsonSchema = (
   imageProperty: ImageProperty
 ): JsonSchema => {
   const { width, height } = imageProperty;
+  // prettier-ignore
   return {
     partsType: "image",
     renderMode: "TRIANGLE_STRIP",
@@ -82,7 +82,12 @@ const _getDefaultImageJsonSchema = (
     datas: [
       {
         variableName: "aPos",
-        data: [0, 0, 0, width, 0, 0, 0, height, 0, width, height, 0],
+        data: [
+          -width, height, 0,
+          width, height, 0,
+          -width, -height, 0,
+          width, -height, 0
+        ],
       },
       {
         variableName: "aTexCoord",

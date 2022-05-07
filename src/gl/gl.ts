@@ -134,7 +134,7 @@ export const loadImage = (
  * Create drawable (which contains everything needed for draw-call) and register to `drawables`.
  * @param gl
  * @param widget
- * @param textures key : file basename, value: variable name
+ * @param textures  key: variable name, value : file basename
  */
 export const createDrawable = (
   gl: WebGL2RenderingContext,

@@ -32,16 +32,9 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
   const [focusedCol, setFocusedCol] = useState<number>(
     canvasWindow.onFocus.col
   );
-  const getFocusedImageWidget = () => {
-    return canvasWindow.images.find(
-      (img) => img.row.includes(focusedRow) && img.col.includes(focusedCol)
-    );
-  };
-  let focusedImageWidget = getFocusedImageWidget();
 
   useEffect(() => {
     canvasWindow.onFocus = { row: focusedRow, col: focusedCol };
-    focusedImageWidget = getFocusedImageWidget();
   }, [focusedRow, focusedCol]);
 
   if (gl == undefined || gl == null) {
@@ -60,7 +53,6 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
       <ImageSelectors
         gl={gl}
         imageProperties={images}
-        imageWidget={focusedImageWidget}
         canvasWindow={canvasWindow}
       />
       <WidgetSelectors
@@ -77,9 +69,15 @@ const ImageSelectors = (props: {
   gl: WebGL2RenderingContext;
   imageProperties: ImageProperty[];
   canvasWindow: CanvasWindow;
-  imageWidget?: Widget;
 }) => {
-  const { gl, canvasWindow, imageProperties, imageWidget } = props;
+  const { gl, canvasWindow, imageProperties } = props;
+  const getFocusedImageWidget = () => {
+    const { row, col } = canvasWindow.onFocus;
+    return canvasWindow.images.find(
+      (img) => img.row.includes(row) && img.col.includes(col)
+    );
+  };
+  let imageWidget = getFocusedImageWidget();
 
   const getSamplerKeys = () => {
     let textures = imageWidget?.textures;
@@ -97,7 +95,6 @@ const ImageSelectors = (props: {
 
     const handleChange = (event: SelectChangeEvent) => {
       const val = event.target.value as string;
-      setValue(val);
       const imageProperty = imageProperties.find(
         (img) => img.fileBasename == val
       );
@@ -119,8 +116,8 @@ const ImageSelectors = (props: {
       } else {
         newWidget.textures = imageWidget.textures;
         newWidget.textures[key] = imageProperty;
+        Object.assign(imageWidget, newWidget);
       }
-      Object.assign(imageWidget, newWidget);
       //
       const textures: { [key: string]: string | undefined } = {};
       for (const key in newWidget.textures) {
@@ -128,6 +125,8 @@ const ImageSelectors = (props: {
       }
       removeDrawable(gl, newWidget.id);
       createDrawable(gl, newWidget, textures);
+      //
+      setValue(val);
     };
 
     const items = imageProperties.map((image) => (
@@ -203,12 +202,21 @@ const WidgetSelectors = (props: {
           setChecked(event.target.checked);
           if (event.target.checked) {
             const iprop = getImageProperty();
-            if (iprop == undefined)
-              convertJsonSchemaToWidget(schema, iprop, [row], [col]);
+            const widget = convertJsonSchemaToWidget(
+              schema,
+              iprop,
+              [row],
+              [col]
+            );
+            createDrawable(gl, widget, {});
           } else {
             canvasWindow.widgets = canvasWindow.widgets.filter((widget) => {
               if (widget.row.includes(row) && widget.row.includes(col)) {
-                return !(widget.vertices == schema.datas);
+                if (widget.vertices == schema.datas) {
+                  removeDrawable(gl, widget.id);
+                  return false;
+                }
+                return true;
               }
               return true;
             });
@@ -217,6 +225,7 @@ const WidgetSelectors = (props: {
 
         return (
           <FormControlLabel
+            key={`${key}_${idx}`}
             control={<Checkbox checked={checked} onChange={handleChange} />}
             label={`${key}_${idx}`}
           />

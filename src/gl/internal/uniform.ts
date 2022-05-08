@@ -23,7 +23,7 @@ export const _drawUniformVariables = (
   const getUniformLoc = (name: string) => {
     const uniformLoc = gl.getUniformLocation(program, name);
     if (uniformLoc == null) {
-      console.log(`Can not find uniform variable of name = ${name}`);
+      // console.log(`Can not find uniform variable of name = ${name}`);
       return null;
     }
     return uniformLoc;

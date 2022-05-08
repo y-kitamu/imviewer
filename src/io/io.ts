@@ -42,7 +42,9 @@ export const convertJsonSchemaToWidget = (
   mvpMats: { [key: string]: Matrix4 }[] = []
 ): Widget => {
   switch (schema.partsType) {
-    case "image" || "point" || "arrow":
+    case "image":
+    case "point":
+    case "arrow":
       return _convertJsonSchemaToPoint(
         schema,
         imageProperty,
@@ -51,7 +53,7 @@ export const convertJsonSchemaToWidget = (
         scale[0],
         mvpMats[0]
       );
-    case "point":
+    case "line":
       return _convertJsonSchemaToLine(schema, row, col, scale, mvpMats);
   }
   throw new Error(`Unsupported parts type : ${schema.partsType}`);

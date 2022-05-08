@@ -51,7 +51,10 @@ export const _prepareVertices = (
   }
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
-
+  {
+    console.log("Vertex array = ");
+    console.log(array);
+  }
   return buffer;
 };
 

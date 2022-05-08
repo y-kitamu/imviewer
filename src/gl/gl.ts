@@ -202,6 +202,7 @@ export const removeDrawable = (
  * @param gl
  */
 export const draw = (gl: WebGL2RenderingContext) => {
+  gl.clearColor(0, 0, 0, 0);
   for (const key of drawables.all()) {
     const drawable = drawables.get(key);
     gl.useProgram(drawable.shader.program);

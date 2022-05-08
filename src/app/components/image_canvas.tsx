@@ -22,6 +22,10 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
       console.error("Failed to get canvas ref.");
       return;
     }
+    const canvas = refCanvas.current;
+    canvas.setAttribute("width", `${window.innerWidth}`);
+    canvas.setAttribute("height", `${window.innerHeight}`);
+
     const gl = refCanvas.current.getContext("webgl2");
     if (gl == null) {
       console.error("Failed to get GL context.");
@@ -30,10 +34,7 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
     DEFAULT_SHADERS.map((shaderStem) => {
       loadShader(gl, shaderStem);
     });
-  }, []);
 
-  useEffect(() => {
-    const gl = refCanvas.current?.getContext("webgl2");
     if (gl == null) {
       return;
     }

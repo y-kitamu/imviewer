@@ -39,9 +39,10 @@ export const _convertJsonSchemaToPoint = (
   mvpMats?: { [key: string]: Matrix4 }
 ): Widget => {
   const shaderPath = DEFAULT_SHADERS[schema.partsType];
-  const renderMode = schema.renderMode
-    ? schema.renderMode
-    : DEFAULT_RENDER_MODE[schema.partsType];
+  const renderMode =
+    schema.renderMode != undefined
+      ? schema.renderMode
+      : DEFAULT_RENDER_MODE[schema.partsType];
 
   if (mvpMats == undefined) {
     mvpMats = { [MVP_VARNAME]: new Matrix4() };

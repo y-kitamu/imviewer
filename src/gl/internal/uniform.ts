@@ -37,19 +37,15 @@ export const _drawUniformVariables = (
 
     const loc = getUniformLoc(uniform.name);
     const arr = new Float32Array(uniformElem.data);
-    const len = uniform.arrayLength;
 
-    if (uniform.dataType in ["float", "int"]) {
-      for (let i = 0; i < uniform.arrayLength; i++) {
-        const uniformLoc = getUniformLoc(`${uniform.name}[${i}]`);
-        switch (uniform.dataType) {
-          case "float":
-            gl.uniform1f(uniformLoc, uniformElem.data[i]);
-            break;
-          case "int" || "bool":
-            gl.uniform1i(uniformLoc, uniformElem.data[i]);
-            break;
-        }
+    if (["float", "int"].includes(uniform.dataType)) {
+      switch (uniform.dataType) {
+        case "float":
+          gl.uniform1fv(loc, arr);
+          break;
+        case "int" || "bool":
+          gl.uniform1iv(loc, arr);
+          break;
       }
     } else if (uniform.dataType.startsWith("vec")) {
       switch (uniform.dataType) {

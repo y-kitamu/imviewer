@@ -9,7 +9,5 @@ out vec2 texCoord;
 
 void main() {
     texCoord = aTexCoord;
-    // gl_Position = mvp * vec4(aPos, 1.0) / scale;
-    // gl_Position = mvp * vec4(aPos, 1.0) / 4717.0;
-    gl_Position = vec4(aPos / 4717.0, 1.0);
+    gl_Position = mvp * (vec4(aPos / scale, 1.0) * 2.0 - 1.0);
 }

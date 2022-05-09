@@ -192,9 +192,13 @@ export const removeDrawable = (
   gl: WebGL2RenderingContext,
   widgetId: string
 ) => {
+  console.log(Object.keys(drawables.all()));
   if (drawables.has(widgetId)) {
     drawables.remove(gl, widgetId);
+  } else {
+    console.log(`No widget is found : id = ${widgetId}`);
   }
+  console.log(Object.keys(drawables.all()));
 };
 
 /**
@@ -203,6 +207,7 @@ export const removeDrawable = (
  */
 export const draw = (gl: WebGL2RenderingContext) => {
   gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
   for (const key of drawables.all()) {
     const drawable = drawables.get(key);
     gl.useProgram(drawable.shader.program);

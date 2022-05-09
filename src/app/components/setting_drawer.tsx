@@ -14,14 +14,17 @@ import {
 } from "@mui/material";
 import { ImageProperty, JsonSchema } from "../../io/types/io";
 import { DEFAULT_SHADERS } from "../../io/constants";
-import {
-  convertImagePropertyToWidget,
-  convertJsonSchemaToWidget,
-} from "../../io/io";
 import { createDrawable, getSamplerNames, removeDrawable } from "../../gl/gl";
 import { SettingDrawerProps } from "../types/props";
-import { Widget } from "../types/widget";
 import { CanvasWindow } from "../types/window";
+import {
+  createImageWidget,
+  createWidget,
+  deleteImageWidget,
+  deleteWidget,
+  getFocusedImageWidget,
+  isWidgetDrawing,
+} from "../crud";
 
 export const SettingDrawer = (props: SettingDrawerProps) => {
   const { isOpen, setIsOpen, gl, images, shaderStem, jsons, canvasWindow } =
@@ -71,13 +74,7 @@ const ImageSelectors = (props: {
   canvasWindow: CanvasWindow;
 }) => {
   const { gl, canvasWindow, imageProperties } = props;
-  const getFocusedImageWidget = () => {
-    const { row, col } = canvasWindow.onFocus;
-    return canvasWindow.images.find(
-      (img) => img.row.includes(row) && img.col.includes(col)
-    );
-  };
-  let imageWidget = getFocusedImageWidget();
+  let imageWidget = getFocusedImageWidget(canvasWindow);
 
   const getSamplerKeys = () => {
     let textures = imageWidget?.textures;
@@ -86,47 +83,21 @@ const ImageSelectors = (props: {
     }
     return getSamplerNames(DEFAULT_SHADERS.image);
   };
-  const [keys, setKeys] = useState<string[]>(getSamplerKeys());
 
-  const selectors = keys.map((key) => {
+  const selectors = getSamplerKeys().map((key) => {
     const [value, setValue] = useState<string>(
       imageWidget?.textures[key]?.fileBasename || ""
     );
 
     const handleChange = (event: SelectChangeEvent) => {
-      const val = event.target.value as string;
-      const imageProperty = imageProperties.find(
-        (img) => img.fileBasename == val
-      );
-      if (imageProperty == undefined) {
-        console.error(`Failed to get image property : ${val}`);
-        return;
-      }
-      //
-      let newWidget = convertImagePropertyToWidget(
-        imageProperty,
-        canvasWindow.onFocus.row,
-        canvasWindow.onFocus.col,
-        imageWidget?.scale,
-        imageWidget?.mvpMats
-      );
-      if (imageWidget == undefined) {
-        newWidget.textures = { [key]: imageProperty };
-        canvasWindow.images.push(newWidget);
+      const fileBasename = event.target.value as string;
+      if (fileBasename == "") {
+        setValue("");
+        deleteImageWidget(gl, canvasWindow);
       } else {
-        newWidget.textures = imageWidget.textures;
-        newWidget.textures[key] = imageProperty;
-        Object.assign(imageWidget, newWidget);
+        createImageWidget(gl, canvasWindow, imageProperties, fileBasename, key);
       }
-      //
-      const textures: { [key: string]: string | undefined } = {};
-      for (const key in newWidget.textures) {
-        textures[key] = newWidget.textures[key].fileBasename;
-      }
-      removeDrawable(gl, newWidget.id);
-      createDrawable(gl, newWidget, textures);
-      //
-      setValue(val);
+      setValue(fileBasename);
     };
 
     const items = imageProperties.map((image) => (
@@ -146,6 +117,9 @@ const ImageSelectors = (props: {
             label={key}
             onChange={handleChange}
           >
+            <MenuItem key={"None"} value={""}>
+              {"None"}
+            </MenuItem>
             {items}
           </Select>
         </FormControl>
@@ -155,7 +129,6 @@ const ImageSelectors = (props: {
 
   return (
     <>
-      {" "}
       <Typography>Image</Typography>
       {selectors}
     </>
@@ -169,57 +142,20 @@ const WidgetSelectors = (props: {
   canvasWindow: CanvasWindow;
 }) => {
   const { gl, jsons, imageProperties, canvasWindow } = props;
-  const imageWidget = canvasWindow.images.find(
-    (img) =>
-      img.row.includes(canvasWindow.onFocus.row) &&
-      img.col.includes(canvasWindow.onFocus.col)
-  );
 
-  const { row, col } = canvasWindow.onFocus;
   const labels = Object.keys(jsons)
     .map((key) => {
       return jsons[key].map((schema, idx) => {
-        const [checked, setChecked] = useState(false);
-        const getImageProperty = (): ImageProperty => {
-          if (imageWidget) {
-            return {
-              fileBasename: "",
-              width: imageWidget.scale[0],
-              height: imageWidget.scale[0],
-            };
-          } else if (schema.imageFilename) {
-            const prop = imageProperties.find(
-              (property) => property.fileBasename == schema.imageFilename
-            );
-            if (prop) {
-              return prop;
-            }
-          }
-          return { fileBasename: "", width: 1.0, height: 1.0 };
-        };
+        const [checked, setChecked] = useState(
+          isWidgetDrawing(canvasWindow, schema)
+        );
 
         const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           setChecked(event.target.checked);
           if (event.target.checked) {
-            const iprop = getImageProperty();
-            const widget = convertJsonSchemaToWidget(
-              schema,
-              iprop,
-              [row],
-              [col]
-            );
-            createDrawable(gl, widget, {});
+            createWidget(gl, canvasWindow, imageProperties, schema);
           } else {
-            canvasWindow.widgets = canvasWindow.widgets.filter((widget) => {
-              if (widget.row.includes(row) && widget.row.includes(col)) {
-                if (widget.vertices == schema.datas) {
-                  removeDrawable(gl, widget.id);
-                  return false;
-                }
-                return true;
-              }
-              return true;
-            });
+            deleteWidget(gl, canvasWindow, schema);
           }
         };
 

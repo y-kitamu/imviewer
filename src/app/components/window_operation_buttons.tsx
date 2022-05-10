@@ -2,16 +2,8 @@ import { WindowOperationButtonsProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
 
 const rescaleWindow = (canvasWindow: CanvasWindow, factor: number) => {
-  canvasWindow.images.map((img) => {
-    for (const key in img.scale) {
-      img.scale[key] *= 1.0 - factor;
-    }
-  });
-  canvasWindow.widgets.map((widget) => {
-    for (const key in widget.scale) {
-      widget.scale[key] *= 1.0 - factor;
-    }
-  });
+  canvasWindow.images.map((img) => {});
+  canvasWindow.widgets.map((widget) => {});
 };
 
 const addRow = (canvasWindow: CanvasWindow, rowIdx: number) => {

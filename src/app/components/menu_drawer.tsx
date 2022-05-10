@@ -24,7 +24,7 @@ export const MenuDrawer = (props: MenuDrawerProps) => {
     }
     const newImage = await loadImage(gl, file);
     if (newImage != undefined) {
-      images.push(newImage);
+      Object.assign(images, newImage);
     }
   };
 

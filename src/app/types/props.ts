@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ImageProperty, JsonSchema, ShaderProperty } from "../../io/types/io";
+import { JsonSchema, ShaderProperty } from "../../io/types/io";
 import { CanvasWindow } from "./window";
 
 export type ImageCanvasProps = {
@@ -11,8 +11,8 @@ export type MenuDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
   gl: WebGL2RenderingContext | null | undefined;
-  images: ImageProperty[];
-  jsons: { [key: string]: JsonSchema[] };
+  images: { [key: string]: HTMLImageElement }; // key : image file basename, value: image element
+  jsons: { [key: string]: JsonSchema[] }; // key: file basename, value : json schemas in the file
 };
 
 export type OpenDrawerButtonProps = {
@@ -33,7 +33,7 @@ export type SettingDrawerProps = {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
   gl: WebGL2RenderingContext | null | undefined;
-  images: ImageProperty[];
+  images: { [key: string]: HTMLImageElement };
   shaderStem: ShaderProperty[];
   jsons: { [key: string]: JsonSchema[] };
   canvasWindow: CanvasWindow;

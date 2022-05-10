@@ -1,19 +1,41 @@
 import { Matrix4 } from "three";
 import { Widget } from "../app/types/widget";
-import { _convertImagePropertyToWidget, _loadImage } from "./internal/image";
+import { isImageLoaded, loadImage as loadImageToGL } from "../gl/gl";
+import {
+  _basename,
+  _getDefaultImageJsonSchema,
+  _readImage,
+} from "./internal/image";
 import {
   _convertJsonSchemaToLine,
-  _convertJsonSchemaToPoint,
-  _loadJson,
+  _convertJsonSchemaToWidget,
 } from "./internal/json";
-import { ImageProperty, JsonSchema } from "./types/io";
+import { JsonSchema } from "./types/io";
 
 /**
  * Load json and return loaded json schema.
  * @param inputFile
  */
 export const loadJson = async (inputFile: File): Promise<JsonSchema[]> => {
-  return await _loadJson(inputFile);
+  return new Promise<JsonSchema[]>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      const text = event.target?.result;
+      if (text == null) {
+        return;
+      }
+      try {
+        let json: JsonSchema | JsonSchema[] = JSON.parse(text as string);
+        if (!Array.isArray(json)) {
+          json = [json];
+        }
+        resolve(json);
+      } catch (e) {
+        reject(e);
+      }
+    };
+    reader.readAsText(inputFile);
+  });
 };
 
 /**
@@ -26,8 +48,14 @@ export const loadJson = async (inputFile: File): Promise<JsonSchema[]> => {
 export const loadImage = async (
   gl: WebGL2RenderingContext,
   inputFile: File
-): Promise<ImageProperty | undefined> => {
-  return await _loadImage(gl, inputFile);
+): Promise<{ [key: string]: HTMLImageElement } | undefined> => {
+  const fileBasename = _basename(inputFile.name);
+  if (isImageLoaded(fileBasename)) {
+    return;
+  }
+  const image = await _readImage(inputFile);
+  loadImageToGL(gl, fileBasename, image);
+  return { [fileBasename]: image };
 };
 
 /**
@@ -35,26 +63,17 @@ export const loadImage = async (
  */
 export const convertJsonSchemaToWidget = (
   schema: JsonSchema,
-  imageProperty: ImageProperty,
   row: number[],
   col: number[],
-  scale: { [key: string]: number }[] = [],
   mvpMats: { [key: string]: Matrix4 }[] = []
 ): Widget => {
   switch (schema.partsType) {
     case "image":
     case "point":
     case "arrow":
-      return _convertJsonSchemaToPoint(
-        schema,
-        imageProperty,
-        row[0],
-        col[0],
-        scale[0],
-        mvpMats[0]
-      );
+      return _convertJsonSchemaToWidget(schema, row[0], col[0], mvpMats[0]);
     case "line":
-      return _convertJsonSchemaToLine(schema, row, col, scale, mvpMats);
+      return _convertJsonSchemaToLine(schema, row, col, mvpMats);
   }
   throw new Error(`Unsupported parts type : ${schema.partsType}`);
 };
@@ -62,14 +81,12 @@ export const convertJsonSchemaToWidget = (
 /**
  * Convert image property to `Widget`
  */
-export const convertImagePropertyToWidget = (
-  imageProperty: ImageProperty,
+export const convertImageToWidget = (
+  image: HTMLImageElement,
   row: number,
   col: number,
-  scale?: { [key: string]: number },
   mvpMats?: { [key: string]: Matrix4 }
 ): Widget => {
-  return _convertImagePropertyToWidget(imageProperty, row, col, scale, mvpMats);
+  const json = _getDefaultImageJsonSchema(image);
+  return _convertJsonSchemaToWidget(json, row, col, mvpMats);
 };
-
-export const updateWidgetUniforms = () => {};

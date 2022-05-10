@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { ImageProperty, JsonSchema, ShaderProperty } from "../io/types/io";
+import { JsonSchema, ShaderProperty } from "../io/types/io";
 import { DEFAULT_SHADER_PROPERTIES } from "../io/constants";
 // components
 import { MenuDrawer } from "./components/menu_drawer";
@@ -13,7 +13,7 @@ const App = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false);
   const [isSettingOpen, setIsSettingOpen] = React.useState<boolean>(false);
   const refCanvas = React.useRef<HTMLCanvasElement>(null);
-  const refImages = React.useRef<ImageProperty[]>([]);
+  const refImages = React.useRef<{ [key: string]: HTMLImageElement }>({});
   const refShaderStems = React.useRef<ShaderProperty[]>(
     DEFAULT_SHADER_PROPERTIES
   );

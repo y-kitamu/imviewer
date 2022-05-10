@@ -12,9 +12,9 @@ import {
   SelectChangeEvent,
   Typography,
 } from "@mui/material";
-import { ImageProperty, JsonSchema } from "../../io/types/io";
+import { JsonSchema } from "../../io/types/io";
 import { DEFAULT_SHADERS } from "../../io/constants";
-import { createDrawable, getSamplerNames, removeDrawable } from "../../gl/gl";
+import { getSamplerNames } from "../../gl/gl";
 import { SettingDrawerProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
 import {
@@ -53,15 +53,11 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
         setIsOpen(false);
       }}
     >
-      <ImageSelectors
-        gl={gl}
-        imageProperties={images}
-        canvasWindow={canvasWindow}
-      />
+      <ImageSelectors gl={gl} images={images} canvasWindow={canvasWindow} />
       <WidgetSelectors
         gl={gl}
         jsons={jsons}
-        imageProperties={images}
+        images={images}
         canvasWindow={canvasWindow}
       />
     </Drawer>
@@ -70,14 +66,13 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
 
 const ImageSelectors = (props: {
   gl: WebGL2RenderingContext;
-  imageProperties: ImageProperty[];
+  images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
-  const { gl, canvasWindow, imageProperties } = props;
-  let imageWidget = getFocusedImageWidget(canvasWindow);
+  const { gl, canvasWindow, images } = props;
+  const textures = getFocusedImageWidget(canvasWindow)?.textures;
 
   const getSamplerKeys = () => {
-    let textures = imageWidget?.textures;
     if (textures != undefined) {
       return Object.keys(textures);
     }
@@ -86,7 +81,7 @@ const ImageSelectors = (props: {
 
   const selectors = getSamplerKeys().map((key) => {
     const [value, setValue] = useState<string>(
-      imageWidget?.textures[key]?.fileBasename || ""
+      textures ? textures[key] || "" : ""
     );
 
     const handleChange = (event: SelectChangeEvent) => {
@@ -95,14 +90,20 @@ const ImageSelectors = (props: {
         setValue("");
         deleteImageWidget(gl, canvasWindow);
       } else {
-        createImageWidget(gl, canvasWindow, imageProperties, fileBasename, key);
+        createImageWidget(
+          gl,
+          canvasWindow,
+          images[fileBasename],
+          fileBasename,
+          key
+        );
       }
       setValue(fileBasename);
     };
 
-    const items = imageProperties.map((image) => (
-      <MenuItem key={image.fileBasename} value={image.fileBasename}>
-        {image.fileBasename}
+    const items = Object.keys(images).map((bname) => (
+      <MenuItem key={bname} value={bname}>
+        {bname}
       </MenuItem>
     ));
 
@@ -138,10 +139,10 @@ const ImageSelectors = (props: {
 const WidgetSelectors = (props: {
   gl: WebGL2RenderingContext;
   jsons: { [key: string]: JsonSchema[] };
-  imageProperties: ImageProperty[];
+  images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
-  const { gl, jsons, imageProperties, canvasWindow } = props;
+  const { gl, jsons, images, canvasWindow } = props;
 
   const labels = Object.keys(jsons)
     .map((key) => {
@@ -153,7 +154,7 @@ const WidgetSelectors = (props: {
         const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           setChecked(event.target.checked);
           if (event.target.checked) {
-            createWidget(gl, canvasWindow, imageProperties, schema);
+            createWidget(gl, canvasWindow, schema);
           } else {
             deleteWidget(gl, canvasWindow, schema);
           }

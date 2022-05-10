@@ -1,16 +1,11 @@
 import { createDrawable, removeDrawable } from "../gl/gl";
-import {
-  convertImagePropertyToWidget,
-  convertJsonSchemaToWidget,
-} from "../io/io";
-import { ImageProperty, JsonSchema } from "../io/types/io";
-import { Widget } from "./types/widget";
+import { convertImageToWidget, convertJsonSchemaToWidget } from "../io/io";
+import { JsonSchema } from "../io/types/io";
 import { CanvasWindow } from "./types/window";
 
 export const createWidget = (
   gl: WebGL2RenderingContext,
   canvasWindow: CanvasWindow,
-  imageProperties: ImageProperty[],
   schema: JsonSchema
 ) => {
   const { row, col } = canvasWindow.onFocus;
@@ -19,66 +14,36 @@ export const createWidget = (
       img.row.includes(canvasWindow.onFocus.row) &&
       img.col.includes(canvasWindow.onFocus.col)
   );
-
-  const getImageProperty = (): ImageProperty => {
-    if (imageWidget) {
-      return {
-        fileBasename: "",
-        width: imageWidget.scale[0],
-        height: imageWidget.scale[0],
-      };
-    } else if (schema.imageFilename) {
-      const prop = imageProperties.find(
-        (property) => property.fileBasename == schema.imageFilename
-      );
-      if (prop) {
-        return prop;
-      }
-    }
-    return { fileBasename: "", width: 1.0, height: 1.0 };
-  };
-  const iprop = getImageProperty();
-  const widget = convertJsonSchemaToWidget(schema, iprop, [row], [col]);
+  const mats = imageWidget == undefined ? [] : [imageWidget.mvpMats];
+  const widget = convertJsonSchemaToWidget(schema, [row], [col], mats);
   createDrawable(gl, widget, {});
 };
 
 export const createImageWidget = (
   gl: WebGL2RenderingContext,
   canvasWindow: CanvasWindow,
-  imageProperties: ImageProperty[],
+  image: HTMLImageElement,
   fileBasename: string,
   key: string
 ) => {
   const imageWidget = getFocusedImageWidget(canvasWindow);
-  const imageProperty = imageProperties.find(
-    (img) => img.fileBasename == fileBasename
-  );
-  if (imageProperty == undefined) {
-    console.error(`Failed to get image property : ${fileBasename}`);
-    return;
-  }
   //
-  let newWidget = convertImagePropertyToWidget(
-    imageProperty,
+  let newWidget = convertImageToWidget(
+    image,
     canvasWindow.onFocus.row,
     canvasWindow.onFocus.col,
-    imageWidget?.scale,
     imageWidget?.mvpMats
   );
   if (imageWidget == undefined) {
-    newWidget.textures = { [key]: imageProperty };
+    newWidget.textures = { [key]: fileBasename };
     canvasWindow.images.push(newWidget);
   } else {
     newWidget.textures = imageWidget.textures;
-    newWidget.textures[key] = imageProperty;
+    newWidget.textures[key] = fileBasename;
   }
   //
-  const textures: { [key: string]: string | undefined } = {};
-  for (const key in newWidget.textures) {
-    textures[key] = newWidget.textures[key].fileBasename;
-  }
   removeDrawable(gl, newWidget.id);
-  createDrawable(gl, newWidget, textures);
+  createDrawable(gl, newWidget, newWidget.textures);
 };
 
 export const isWidgetDrawing = (

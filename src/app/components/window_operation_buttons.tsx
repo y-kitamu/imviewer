@@ -2,7 +2,6 @@ import { WindowOperationButtonsProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
 
 const rescaleWindow = (canvasWindow: CanvasWindow, factor: number) => {
-  canvasWindow.images.map((img) => {});
   canvasWindow.widgets.map((widget) => {});
 };
 
@@ -31,9 +30,6 @@ const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
     return;
   }
   canvasWindow.rowSizes.splice(rowIdx, 1);
-  canvasWindow.images = canvasWindow.images.filter(
-    (img) => !img.row.includes(rowIdx)
-  );
   canvasWindow.widgets = canvasWindow.widgets.filter(
     (widget) => !widget.row.includes(rowIdx)
   );
@@ -47,9 +43,6 @@ const deleteCol = (canvasWindow: CanvasWindow, colIdx: number) => {
     return;
   }
   canvasWindow.colSizes.splice(colIdx, 1);
-  canvasWindow.images = canvasWindow.images.filter(
-    (img) => !img.col.includes(colIdx)
-  );
   canvasWindow.widgets = canvasWindow.widgets.filter(
     (widget) => !widget.col.includes(colIdx)
   );

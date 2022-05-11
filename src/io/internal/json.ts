@@ -11,11 +11,8 @@ export const _convertJsonSchemaToWidget = (
   schema: JsonSchema,
   row: number | number[],
   col: number | number[],
-  mvpMats?: { [key: string]: Matrix4 }
+  mvpMats: { [key: string]: Matrix4 }
 ): Widget => {
-  if (mvpMats == undefined) {
-    mvpMats = { [MVP_VARNAME]: new Matrix4() };
-  }
   if (typeof row == "number") {
     row = [row];
   }
@@ -29,9 +26,12 @@ export const _convertJsonSchemaToWidget = (
       data: mvpMats![key].elements,
     };
   });
+  const id = schema.schemaId
+    ? `${schema.schemaId + String(Math.random())}`
+    : String(Math.random());
 
   return {
-    id: String(Math.random()),
+    id,
     renderMode: schema.renderMode || DEFAULT_RENDER_MODE[schema.partsType],
     shaderPath: DEFAULT_SHADERS[schema.partsType],
     vertices: schema.datas,

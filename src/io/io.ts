@@ -29,6 +29,9 @@ export const loadJson = async (inputFile: File): Promise<JsonSchema[]> => {
         if (!Array.isArray(json)) {
           json = [json];
         }
+        for (let i = 0; i < json.length; i++) {
+          json[i].schemaId = `${inputFile.name}_${i}`;
+        }
         resolve(json);
       } catch (e) {
         reject(e);
@@ -65,8 +68,11 @@ export const convertJsonSchemaToWidget = (
   schema: JsonSchema,
   row: number[],
   col: number[],
-  mvpMats: { [key: string]: Matrix4 }[] = []
+  mvpMats: { [key: string]: Matrix4 }[]
 ): Widget => {
+  if (mvpMats.length == 0) {
+    throw new Error("`mvpMats` must not be empty array.");
+  }
   switch (schema.partsType) {
     case "image":
     case "point":
@@ -85,7 +91,7 @@ export const convertImageToWidget = (
   image: HTMLImageElement,
   row: number,
   col: number,
-  mvpMats?: { [key: string]: Matrix4 }
+  mvpMats: { [key: string]: Matrix4 }
 ): Widget => {
   const json = _getDefaultImageJsonSchema(image);
   return _convertJsonSchemaToWidget(json, row, col, mvpMats);

@@ -2,6 +2,7 @@
  * Interface data type definitions.
  */
 
+export type PartsType = "image" | "point" | "line" | "arrow";
 export type RenderMode =
   | "POINTS"
   | "LINES"
@@ -32,6 +33,7 @@ export type SamplerSchema = {
 export type WidgetSchema = {
   id: string;
   shaderPath: string;
+  partsType: PartsType;
   renderMode?: RenderMode;
   vertices?: VertexSchema[];
   uniforms?: UniformSchema[];

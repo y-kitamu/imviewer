@@ -84,8 +84,8 @@ export const loadShader = (
   const program = _compileShader(gl, shaderPath);
   compiledShaders.add(stem, { property, program });
   const samplerNames = property.samplers.map((sampler) => sampler.name);
-  console.log("Finish loading shader.");
-  console.log(property);
+  // console.log("Finish loading shader.");
+  // console.log(property);
   return samplerNames;
 };
 
@@ -126,8 +126,8 @@ export const loadImage = (
   }
   const texture = _prepareTexture(gl, image);
   loadedImages.add(fileBasename, texture);
-  console.log(`add image : basename = ${fileBasename},`);
-  console.log(texture);
+  // console.log(`add image : basename = ${fileBasename},`);
+  // console.log(texture);
 };
 
 /**
@@ -208,8 +208,8 @@ export const removeDrawable = (
 export const draw = (gl: WebGL2RenderingContext) => {
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-  for (const key of drawables.all()) {
-    const drawable = drawables.get(key);
+
+  const renderDrawable = (drawable: Idrawable.Drawable) => {
     gl.useProgram(drawable.shader.program);
 
     const property = drawable.shader.property;
@@ -246,5 +246,18 @@ export const draw = (gl: WebGL2RenderingContext) => {
     gl.drawArrays(renderMode, 0, drawable.numVertex);
 
     gl.useProgram(null);
+  };
+
+  for (const key of drawables.all()) {
+    const drawable = drawables.get(key);
+    if (drawable.widget.partsType == "image") {
+      renderDrawable(drawable);
+    }
+  }
+  for (const key of drawables.all()) {
+    const drawable = drawables.get(key);
+    if (drawable.widget.partsType != "image") {
+      renderDrawable(drawable);
+    }
   }
 };

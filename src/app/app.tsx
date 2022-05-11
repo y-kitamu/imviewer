@@ -25,7 +25,6 @@ const App = () => {
     ncols: 1,
     rowSizes: [1.0],
     colSizes: [1.0],
-    images: [],
     widgets: [],
   });
 

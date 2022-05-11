@@ -20,13 +20,13 @@ import { CanvasWindow } from "../types/window";
 import {
   createImageWidget,
   createWidget,
-  deleteImageWidget,
   deleteWidget,
   getFocusedImageWidget,
   isWidgetDrawing,
-} from "../crud";
+} from "../cruds/widget";
 
 export const SettingDrawer = (props: SettingDrawerProps) => {
+  console.log("Render SettingDrawer");
   const { isOpen, setIsOpen, gl, images, shaderStem, jsons, canvasWindow } =
     props;
   const [focusedRow, setFocusedRow] = useState<number>(
@@ -88,7 +88,7 @@ const ImageSelectors = (props: {
       const fileBasename = event.target.value as string;
       if (fileBasename == "") {
         setValue("");
-        deleteImageWidget(gl, canvasWindow);
+        deleteWidget(gl, canvasWindow);
       } else {
         createImageWidget(
           gl,
@@ -142,11 +142,12 @@ const WidgetSelectors = (props: {
   images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
+  console.log("Render WidgetSelectors");
   const { gl, jsons, images, canvasWindow } = props;
 
   const labels = Object.keys(jsons)
     .map((key) => {
-      return jsons[key].map((schema, idx) => {
+      return jsons[key].map((schema) => {
         const [checked, setChecked] = useState(
           isWidgetDrawing(canvasWindow, schema)
         );
@@ -162,9 +163,9 @@ const WidgetSelectors = (props: {
 
         return (
           <FormControlLabel
-            key={`${key}_${idx}`}
+            key={schema.schemaId!}
             control={<Checkbox checked={checked} onChange={handleChange} />}
-            label={`${key}_${idx}`}
+            label={schema.schemaId!}
           />
         );
       });

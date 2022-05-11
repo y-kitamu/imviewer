@@ -1,17 +1,15 @@
 /**
  * Type definitions for data loaded from files.
  */
-import { RenderMode } from "../../gl/types/schemas";
-
-export type PartsType = "image" | "point" | "line" | "arrow";
+import { PartsType, RenderMode } from "../../gl/types/schemas";
 
 /**
  * Schema of input JSON file.
  */
 export type JsonSchema = {
+  schemaId?: string;
   partsType: PartsType;
   renderMode?: RenderMode;
-  imageFilename?: string;
   datas: {
     variableName: string;
     data: number[];

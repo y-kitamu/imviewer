@@ -1,14 +1,26 @@
 const React = require("react");
 import { useEffect, useRef } from "react";
+import { Matrix4 } from "three";
 import { draw, loadShader } from "../../gl/gl";
 import { DEFAULT_SHADERS } from "../../gl/constants";
 import { ImageCanvasProps } from "../types/props";
+import { updateOnFocusByMousePosition } from "../cruds/canvas_window";
+import { updateMVPMatrix } from "../cruds/widget";
 
 export const ImageCanvas = (props: ImageCanvasProps) => {
   const { refCanvas, canvasWindow } = props;
   const isMouseDown = useRef<boolean>(false);
 
-  const handleWheel = (e: React.WheelEvent) => {};
+  const handleWheel = (e: React.WheelEvent) => {
+    updateOnFocusByMousePosition(canvasWindow, e);
+    const delta = new Matrix4();
+    if (e.deltaY > 0) {
+      delta.makeScale(0.9, 0.9, 1.0);
+    } else if (e.deltaY < 0) {
+      delta.makeScale(1.1, 1.1, 1.0);
+    }
+    updateMVPMatrix(canvasWindow, delta);
+  };
   const handleMouseDown = (e: React.MouseEvent) => {
     isMouseDown.current = true;
   };

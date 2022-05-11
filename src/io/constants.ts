@@ -1,6 +1,6 @@
-import { RenderMode } from "../gl/types/schemas";
+import { PartsType, RenderMode } from "../gl/types/schemas";
 import { SHADER_DIR } from "../gl/constants";
-import { PartsType, ShaderProperty } from "./types/io";
+import { ShaderProperty } from "./types/io";
 
 export const MVP_VARNAME = "mvp";
 export const SCALE_VARNAME = "scale";

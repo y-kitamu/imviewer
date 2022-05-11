@@ -9,6 +9,5 @@ export type CanvasWindow = {
   ncols: number;
   rowSizes: number[]; // sum(rowSizes) should be 1.0
   colSizes: number[]; // sum(colSizes) should be 1.0
-  images: Widget[];
   widgets: Widget[];
 };

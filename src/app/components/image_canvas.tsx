@@ -7,6 +7,7 @@ import { ImageCanvasProps } from "../types/props";
 import { updateOnFocusByMousePosition } from "../cruds/canvas_window";
 import { updateMVPMatrix } from "../cruds/widget";
 import { scale, shift } from "../matrix";
+import { updateUniforms } from "../shader/uniform";
 
 export const ImageCanvas = (props: ImageCanvasProps) => {
   const { refCanvas, canvasWindow } = props;
@@ -57,6 +58,7 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
       return;
     }
     const render = () => {
+      updateUniforms(canvasWindow);
       draw(gl);
       requestAnimationFrame(render);
     };

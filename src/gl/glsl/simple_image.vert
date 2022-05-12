@@ -5,9 +5,10 @@ layout (location=1) in vec2 aTexCoord;
 uniform mat4 mvp;
 
 out vec2 texCoord;
+out vec2 xy;
 
 void main() {
-
     texCoord = aTexCoord;
     gl_Position = mvp * vec4(aPos, 1.0);
+    xy = gl_Position.xy;
 }

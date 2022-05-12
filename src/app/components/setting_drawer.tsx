@@ -2,6 +2,7 @@ const React = require("react");
 import { useEffect, useState } from "react";
 import {
   Checkbox,
+  Divider,
   Drawer,
   FormControl,
   FormControlLabel,
@@ -24,6 +25,7 @@ import {
   getFocusedImageWidget,
   isWidgetDrawing,
 } from "../cruds/widget";
+import { WindowOperationButtons } from "./window_operation_buttons";
 
 export const SettingDrawer = (props: SettingDrawerProps) => {
   console.log("Render SettingDrawer");
@@ -53,6 +55,8 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
         setIsOpen(false);
       }}
     >
+      <WindowOperationButtons canvasWindow={canvasWindow} />
+      <Divider />
       <ImageSelectors gl={gl} images={images} canvasWindow={canvasWindow} />
       <WidgetSelectors
         gl={gl}

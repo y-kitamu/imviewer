@@ -1,3 +1,5 @@
+import React from "react";
+import { Button } from "@mui/material";
 import { WindowOperationButtonsProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
 
@@ -5,8 +7,8 @@ const rescaleWindow = (canvasWindow: CanvasWindow, factor: number) => {
   canvasWindow.widgets.map((widget) => {});
 };
 
-const addRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
-  if (rowIdx > canvasWindow.nrows) {
+const addRow = (canvasWindow: CanvasWindow, rowIdx: number = -1) => {
+  if (rowIdx == -1 || rowIdx > canvasWindow.nrows) {
     rowIdx = canvasWindow.nrows;
   }
   const factor = 1.0 / canvasWindow.nrows;
@@ -15,8 +17,8 @@ const addRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
   canvasWindow.nrows++;
 };
 
-const addCol = (canvasWindow: CanvasWindow, colIdx: number) => {
-  if (colIdx > canvasWindow.ncols) {
+const addCol = (canvasWindow: CanvasWindow, colIdx: number = -1) => {
+  if (colIdx == -1 || colIdx > canvasWindow.ncols) {
     colIdx = canvasWindow.ncols;
   }
   const factor = 1.0 / canvasWindow.ncols;
@@ -25,9 +27,12 @@ const addCol = (canvasWindow: CanvasWindow, colIdx: number) => {
   canvasWindow.ncols++;
 };
 
-const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
-  if (rowIdx >= canvasWindow.nrows) {
+const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number = -1) => {
+  if (canvasWindow.nrows == 1 || rowIdx >= canvasWindow.nrows) {
     return;
+  }
+  if (rowIdx == -1) {
+    rowIdx = canvasWindow.nrows - 1;
   }
   canvasWindow.rowSizes.splice(rowIdx, 1);
   canvasWindow.widgets = canvasWindow.widgets.filter(
@@ -38,9 +43,12 @@ const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number) => {
   canvasWindow.nrows--;
 };
 
-const deleteCol = (canvasWindow: CanvasWindow, colIdx: number) => {
-  if (colIdx >= canvasWindow.ncols) {
+const deleteCol = (canvasWindow: CanvasWindow, colIdx: number = -1) => {
+  if (canvasWindow.ncols == 1 || colIdx >= canvasWindow.ncols) {
     return;
+  }
+  if (colIdx == -1) {
+    colIdx = canvasWindow.ncols - 1;
   }
   canvasWindow.colSizes.splice(colIdx, 1);
   canvasWindow.widgets = canvasWindow.widgets.filter(
@@ -58,10 +66,36 @@ const deleteCol = (canvasWindow: CanvasWindow, colIdx: number) => {
 export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
   const { canvasWindow } = props;
 
-  const insertColumn = (colIndex: number) => {};
-  const insertRow = (rowIndex: number) => {};
-  const deleteColumn = (colIndex: number) => {};
-  const deleteRow = (rowIndex: number) => {};
-
-  return <></>;
+  return (
+    <>
+      <Button
+        onClick={() => {
+          addRow(canvasWindow);
+        }}
+      >
+        Add Row
+      </Button>
+      <Button
+        onClick={() => {
+          addCol(canvasWindow);
+        }}
+      >
+        Add Col
+      </Button>
+      <Button
+        onClick={() => {
+          deleteRow(canvasWindow);
+        }}
+      >
+        Delete Row
+      </Button>
+      <Button
+        onClick={() => {
+          deleteCol(canvasWindow);
+        }}
+      >
+        Delete Col
+      </Button>
+    </>
+  );
 };

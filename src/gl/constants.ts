@@ -8,7 +8,7 @@ export const DEFAULT_SHADER_STEMS = [
   `simple_point`,
   `simple_line`,
   // `simple_arrow`,
-];
+] as const;
 export const DEFAULT_SHADERS = DEFAULT_SHADER_STEMS.map(
   (stem) => `${SHADER_DIR}${stem}`
 );

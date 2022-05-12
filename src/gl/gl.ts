@@ -1,4 +1,3 @@
-import { Matrix4 } from "three";
 import { SHADER_DIR } from "./constants";
 import { _compileShader } from "./internal/compiler";
 import { _parseShader } from "./internal/parser";

@@ -6,6 +6,7 @@ import { DEFAULT_SHADERS } from "../../gl/constants";
 import { ImageCanvasProps } from "../types/props";
 import { updateOnFocusByMousePosition } from "../cruds/canvas_window";
 import { updateMVPMatrix } from "../cruds/widget";
+import { scale, shift } from "../matrix";
 
 export const ImageCanvas = (props: ImageCanvasProps) => {
   const { refCanvas, canvasWindow } = props;
@@ -13,11 +14,11 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
 
   const handleWheel = (e: React.WheelEvent) => {
     updateOnFocusByMousePosition(canvasWindow, e);
-    const delta = new Matrix4();
+    let delta = new Matrix4();
     if (e.deltaY > 0) {
-      delta.makeScale(0.9, 0.9, 1.0);
+      delta = scale(0.9, 0.9, e.clientX, e.clientY);
     } else if (e.deltaY < 0) {
-      delta.makeScale(1.1, 1.1, 1.0);
+      delta = scale(1.1, 1.1, e.clientX, e.clientY);
     }
     updateMVPMatrix(canvasWindow, delta);
   };
@@ -27,7 +28,12 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
   const handleMouseUp = (e: React.MouseEvent) => {
     isMouseDown.current = false;
   };
-  const handleMouseMove = (e: React.MouseEvent) => {};
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isMouseDown.current) {
+      let delta = shift(e.movementX, -e.movementY);
+      updateMVPMatrix(canvasWindow, delta);
+    }
+  };
 
   useEffect(() => {
     if (refCanvas.current == null) {

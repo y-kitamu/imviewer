@@ -23,8 +23,6 @@ const App = () => {
     onFocus: { row: 0, col: 0 },
     nrows: 1,
     ncols: 1,
-    rowSizes: [1.0],
-    colSizes: [1.0],
     widgets: [],
   });
 

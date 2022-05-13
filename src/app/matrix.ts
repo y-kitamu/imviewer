@@ -37,8 +37,6 @@ export const scale = (
 export const shift = (deltaX: number, deltaY: number): Matrix4 => {
   const dx = (2.0 * deltaX) / window.innerWidth;
   const dy = (2.0 * deltaY) / window.innerHeight;
-  console.log(window.innerWidth, window.innerHeight);
-  console.log(deltaX, deltaY, dx, dy);
   const mat = new Matrix4();
   // prettier-ignore
   mat.set(1.0, 0.0, 0.0, dx,

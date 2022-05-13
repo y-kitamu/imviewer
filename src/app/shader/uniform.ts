@@ -16,6 +16,7 @@ export const updateUniforms = (canvasWindow: CanvasWindow) => {
           (uni) => !targetNames.includes(uni.variableName)
         );
         widget.uniforms?.push(...uniforms);
+        break;
       case "line":
         break;
     }
@@ -30,10 +31,10 @@ const updateSimpleUniforms = (
 ): UniformSchema[] => {
   const { nrows, ncols } = canvasWindow;
 
-  const left = (2.0 * row) / nrows - 1.0;
-  const right = (2.0 * (row + 1)) / nrows - 1.0;
-  const top = 1.0 - (2.0 * col) / ncols;
-  const bottom = 1.0 - (2.0 * (col + 1)) / ncols;
+  const left = (2.0 * col) / ncols - 1.0;
+  const right = (2.0 * (col + 1)) / ncols - 1.0;
+  const top = 1.0 - (2.0 * row) / nrows;
+  const bottom = 1.0 - (2.0 * (row + 1)) / nrows;
 
   return [
     {

@@ -1,19 +1,13 @@
 import React from "react";
 import { Button } from "@mui/material";
+import { removeDrawable } from "../../gl/gl";
 import { WindowOperationButtonsProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
-
-const rescaleWindow = (canvasWindow: CanvasWindow, factor: number) => {
-  canvasWindow.widgets.map((widget) => {});
-};
 
 const addRow = (canvasWindow: CanvasWindow, rowIdx: number = -1) => {
   if (rowIdx == -1 || rowIdx > canvasWindow.nrows) {
     rowIdx = canvasWindow.nrows;
   }
-  const factor = 1.0 / canvasWindow.nrows;
-  rescaleWindow(canvasWindow, 1.0 - factor);
-  canvasWindow.rowSizes.splice(rowIdx, 0, factor);
   canvasWindow.nrows++;
 };
 
@@ -21,42 +15,64 @@ const addCol = (canvasWindow: CanvasWindow, colIdx: number = -1) => {
   if (colIdx == -1 || colIdx > canvasWindow.ncols) {
     colIdx = canvasWindow.ncols;
   }
-  const factor = 1.0 / canvasWindow.ncols;
-  rescaleWindow(canvasWindow, 1.0 - factor);
-  canvasWindow.colSizes.splice(colIdx, 0, factor);
   canvasWindow.ncols++;
 };
 
-const deleteRow = (canvasWindow: CanvasWindow, rowIdx: number = -1) => {
+const deleteRow = (
+  gl: WebGL2RenderingContext,
+  canvasWindow: CanvasWindow,
+  rowIdx: number = -1
+) => {
   if (canvasWindow.nrows == 1 || rowIdx >= canvasWindow.nrows) {
     return;
   }
   if (rowIdx == -1) {
     rowIdx = canvasWindow.nrows - 1;
   }
-  canvasWindow.rowSizes.splice(rowIdx, 1);
-  canvasWindow.widgets = canvasWindow.widgets.filter(
-    (widget) => !widget.row.includes(rowIdx)
-  );
-  const factor = canvasWindow.nrows / (canvasWindow.nrows - 1);
-  rescaleWindow(canvasWindow, factor);
+  canvasWindow.widgets = canvasWindow.widgets.filter((widget) => {
+    if (widget.row.includes(rowIdx)) {
+      removeDrawable(gl, widget.id);
+      return false;
+    }
+    return true;
+  });
+  canvasWindow.widgets.forEach((widget) => {
+    widget.row = widget.row.map((r) => {
+      if (r >= rowIdx) {
+        r--;
+      }
+      return r;
+    });
+  });
   canvasWindow.nrows--;
 };
 
-const deleteCol = (canvasWindow: CanvasWindow, colIdx: number = -1) => {
+const deleteCol = (
+  gl: WebGL2RenderingContext,
+  canvasWindow: CanvasWindow,
+  colIdx: number = -1
+) => {
   if (canvasWindow.ncols == 1 || colIdx >= canvasWindow.ncols) {
     return;
   }
   if (colIdx == -1) {
     colIdx = canvasWindow.ncols - 1;
   }
-  canvasWindow.colSizes.splice(colIdx, 1);
-  canvasWindow.widgets = canvasWindow.widgets.filter(
-    (widget) => !widget.col.includes(colIdx)
-  );
-  const factor = canvasWindow.ncols / (canvasWindow.ncols - 1);
-  rescaleWindow(canvasWindow, factor);
-
+  canvasWindow.widgets = canvasWindow.widgets.filter((widget) => {
+    if (widget.col.includes(colIdx)) {
+      removeDrawable(gl, widget.id);
+      return false;
+    }
+    return true;
+  });
+  canvasWindow.widgets.forEach((widget) => {
+    widget.col = widget.col.map((c) => {
+      if (c >= colIdx) {
+        c--;
+      }
+      return c;
+    });
+  });
   canvasWindow.ncols--;
 };
 
@@ -64,7 +80,7 @@ const deleteCol = (canvasWindow: CanvasWindow, colIdx: number = -1) => {
  *  Insert or delete sub windows at a specified column, row.
  */
 export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
-  const { canvasWindow } = props;
+  const { gl, canvasWindow } = props;
 
   return (
     <>
@@ -84,14 +100,14 @@ export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
       </Button>
       <Button
         onClick={() => {
-          deleteRow(canvasWindow);
+          deleteRow(gl, canvasWindow);
         }}
       >
         Delete Row
       </Button>
       <Button
         onClick={() => {
-          deleteCol(canvasWindow);
+          deleteCol(gl, canvasWindow);
         }}
       >
         Delete Col

@@ -128,18 +128,12 @@ const getMVPMatrix = (
   }
 
   // If widgets already rendered do not exist, create new mvp matrix.
-  const { rowSizes, colSizes } = canvasWindow;
-  const sx = colSizes[col] / window.innerWidth;
-  const offsetx = colSizes.reduce(
-    (prevVal, curVal, curIdx) => (curIdx < col ? prevVal + curVal : prevVal),
-    0.0
-  );
+  const { nrows, ncols } = canvasWindow;
+  const sx = 1.0 / (window.innerWidth * ncols);
+  const offsetx = col / ncols;
   const dx = offsetx * 2.0 - 1.0;
-  const sy = rowSizes[col] / window.innerHeight;
-  const offsety = rowSizes.reduce(
-    (prevVal, curVal, curIdx) => (curIdx < row ? prevVal + curVal : prevVal),
-    0.0
-  );
+  const sy = 1.0 / (window.innerHeight * nrows);
+  const offsety = row / nrows;
   const dy = offsety * 2.0 - 1.0;
   const mvpMat = new Matrix4();
   // prettier-ignore

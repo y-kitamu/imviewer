@@ -40,5 +40,6 @@ export type SettingDrawerProps = {
 };
 
 export type WindowOperationButtonsProps = {
+  gl: WebGL2RenderingContext;
   canvasWindow: CanvasWindow;
 };

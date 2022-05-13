@@ -38,6 +38,28 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
     canvasWindow.onFocus.col
   );
 
+  const handleChange = (
+    event: SelectChangeEvent,
+    setter: (val: number) => void
+  ) => {
+    const val = Number(event.target.value);
+    if (val != undefined) {
+      setter(val);
+    }
+  };
+
+  const { nrows, ncols } = canvasWindow;
+  const rows = Array.from({ length: nrows }, (_, i) => (
+    <MenuItem key={i} value={i}>
+      {i}
+    </MenuItem>
+  ));
+  const cols = Array.from({ length: ncols }, (_, i) => (
+    <MenuItem key={i} value={i}>
+      {i}
+    </MenuItem>
+  ));
+
   useEffect(() => {
     canvasWindow.onFocus = { row: focusedRow, col: focusedCol };
   }, [focusedRow, focusedCol]);
@@ -55,7 +77,32 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
         setIsOpen(false);
       }}
     >
-      <WindowOperationButtons canvasWindow={canvasWindow} />
+      <WindowOperationButtons gl={gl} canvasWindow={canvasWindow} />
+      <Divider />
+      <FormControl>
+        <InputLabel id="canvas-row-select-label">Row</InputLabel>
+        <Select
+          labelId="canvas-row-select-label"
+          id="demo-simple-select"
+          value={String(focusedRow)}
+          label="Row"
+          onChange={(event) => handleChange(event, setFocusedRow)}
+        >
+          {rows}
+        </Select>
+      </FormControl>
+      <FormControl>
+        <InputLabel id="canvas-col-select-label">Col</InputLabel>
+        <Select
+          labelId="canvas-col-select-label"
+          id="demo-simple-select"
+          value={String(focusedCol)}
+          label="Col"
+          onChange={(event) => handleChange(event, setFocusedCol)}
+        >
+          {cols}
+        </Select>
+      </FormControl>
       <Divider />
       <ImageSelectors gl={gl} images={images} canvasWindow={canvasWindow} />
       <WidgetSelectors

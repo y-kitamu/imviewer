@@ -15,5 +15,4 @@ export const updateOnFocusByMousePosition = (
   const ix = getFocusIdx(x, canvasWindow.ncols);
   const iy = getFocusIdx(y, canvasWindow.nrows);
   canvasWindow.onFocus = { row: iy, col: ix };
-  console.log(canvasWindow.onFocus);
 };

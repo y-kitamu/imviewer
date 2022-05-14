@@ -80,13 +80,14 @@ const deleteCol = (
  *  Insert or delete sub windows at a specified column, row.
  */
 export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
-  const { gl, canvasWindow } = props;
+  const { gl, canvasWindow, setNCols, setNRows } = props;
 
   return (
     <>
       <Button
         onClick={() => {
           addRow(canvasWindow);
+          setNRows(canvasWindow.nrows);
         }}
       >
         Add Row
@@ -94,6 +95,7 @@ export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
       <Button
         onClick={() => {
           addCol(canvasWindow);
+          setNCols(canvasWindow.ncols);
         }}
       >
         Add Col
@@ -101,6 +103,7 @@ export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
       <Button
         onClick={() => {
           deleteRow(gl, canvasWindow);
+          setNRows(canvasWindow.nrows);
         }}
       >
         Delete Row
@@ -108,6 +111,7 @@ export const WindowOperationButtons = (props: WindowOperationButtonsProps) => {
       <Button
         onClick={() => {
           deleteCol(gl, canvasWindow);
+          setNCols(canvasWindow.ncols);
         }}
       >
         Delete Col

@@ -25,6 +25,7 @@ export const ImageCanvas = (props: ImageCanvasProps) => {
   };
   const handleMouseDown = (e: React.MouseEvent) => {
     isMouseDown.current = true;
+    updateOnFocusByMousePosition(canvasWindow, e);
   };
   const handleMouseUp = (e: React.MouseEvent) => {
     isMouseDown.current = false;

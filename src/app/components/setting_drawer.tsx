@@ -31,24 +31,25 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
   console.log("Render SettingDrawer");
   const { isOpen, setIsOpen, gl, images, shaderStem, jsons, canvasWindow } =
     props;
-  const [focusedRow, setFocusedRow] = useState<number>(
-    canvasWindow.onFocus.row
+  const [onFocus, setOnFocus] = useState<{ row: number; col: number }>(
+    canvasWindow.onFocus
   );
-  const [focusedCol, setFocusedCol] = useState<number>(
-    canvasWindow.onFocus.col
-  );
+  const [nrows, setNRows] = useState<number>(canvasWindow.nrows);
+  const [ncols, setNCols] = useState<number>(canvasWindow.ncols);
 
   const handleChange = (
     event: SelectChangeEvent,
-    setter: (val: number) => void
+    key: keyof typeof onFocus,
+    setter: (val: typeof onFocus) => void
   ) => {
     const val = Number(event.target.value);
     if (val != undefined) {
-      setter(val);
+      canvasWindow.onFocus = { ...onFocus, [key]: val };
+      console.log("handleChange");
+      setter(canvasWindow.onFocus);
     }
   };
 
-  const { nrows, ncols } = canvasWindow;
   const rows = Array.from({ length: nrows }, (_, i) => (
     <MenuItem key={i} value={i}>
       {i}
@@ -61,8 +62,11 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
   ));
 
   useEffect(() => {
-    canvasWindow.onFocus = { row: focusedRow, col: focusedCol };
-  }, [focusedRow, focusedCol]);
+    const { row, col } = canvasWindow.onFocus;
+    if (onFocus.row != row || onFocus.col != col) {
+      setOnFocus({ row: row, col: col });
+    }
+  }, [isOpen]);
 
   if (gl == undefined || gl == null) {
     console.log("WebGL context is null");
@@ -77,16 +81,21 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
         setIsOpen(false);
       }}
     >
-      <WindowOperationButtons gl={gl} canvasWindow={canvasWindow} />
+      <WindowOperationButtons
+        gl={gl}
+        canvasWindow={canvasWindow}
+        setNRows={setNRows}
+        setNCols={setNCols}
+      />
       <Divider />
       <FormControl>
         <InputLabel id="canvas-row-select-label">Row</InputLabel>
         <Select
           labelId="canvas-row-select-label"
           id="demo-simple-select"
-          value={String(focusedRow)}
+          value={String(onFocus.row)}
           label="Row"
-          onChange={(event) => handleChange(event, setFocusedRow)}
+          onChange={(event) => handleChange(event, "row", setOnFocus)}
         >
           {rows}
         </Select>
@@ -96,9 +105,9 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
         <Select
           labelId="canvas-col-select-label"
           id="demo-simple-select"
-          value={String(focusedCol)}
+          value={String(onFocus.col)}
           label="Col"
-          onChange={(event) => handleChange(event, setFocusedCol)}
+          onChange={(event) => handleChange(event, "col", setOnFocus)}
         >
           {cols}
         </Select>
@@ -120,8 +129,10 @@ const ImageSelectors = (props: {
   images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
+  console.log("Render ImageSelectors");
   const { gl, canvasWindow, images } = props;
   const textures = getFocusedImageWidget(canvasWindow)?.textures;
+  console.log(textures);
 
   const getSamplerKeys = () => {
     if (textures != undefined) {
@@ -134,7 +145,13 @@ const ImageSelectors = (props: {
     const [value, setValue] = useState<string>(
       textures ? textures[key] || "" : ""
     );
-
+    if (textures == undefined) {
+      if (value != "") {
+        setValue("");
+      }
+    } else if (textures[key] != value) {
+      setValue(textures[key] || "");
+    }
     const handleChange = (event: SelectChangeEvent) => {
       const fileBasename = event.target.value as string;
       if (fileBasename == "") {

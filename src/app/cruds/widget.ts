@@ -32,11 +32,13 @@ export const createImageWidget = (
   fileBasename: string,
   key: string
 ) => {
+  const { row, col } = canvasWindow.onFocus;
+  const { width, height } = image;
   const newWidget = convertImageToWidget(
     image,
-    canvasWindow.onFocus.row,
-    canvasWindow.onFocus.col,
-    getMVPMatrix(canvasWindow)
+    row,
+    col,
+    getMVPMatrix(canvasWindow, row, col, width, height)
   );
   const currentWidget = getFocusedImageWidget(canvasWindow);
   if (currentWidget == undefined) {
@@ -110,7 +112,9 @@ export const updateMVPMatrix = (
 const getMVPMatrix = (
   canvasWindow: CanvasWindow,
   row: number = -1,
-  col: number = -1
+  col: number = -1,
+  imageWidth: number = -1,
+  imageHeight: number = -1
 ): { [key: string]: Matrix4 } => {
   if (row == -1 || col == -1) {
     row = canvasWindow.onFocus.row;
@@ -123,18 +127,29 @@ const getMVPMatrix = (
 
   // If widgets already rendered are found, return the mvp matrix of the widget.
   if (mat != undefined) {
-    console.log("Matrix already exists!");
     return mat;
   }
 
   // If widgets already rendered do not exist, create new mvp matrix.
   const { nrows, ncols } = canvasWindow;
-  const sx = 1.0 / (window.innerWidth * ncols);
-  const offsetx = col / ncols;
-  const dx = offsetx * 2.0 - 1.0;
-  const sy = 1.0 / (window.innerHeight * nrows);
-  const offsety = row / nrows;
-  const dy = offsety * 2.0 - 1.0;
+  const getOffset = (idx: number, numElems: number) => {
+    const offset = idx / numElems;
+    return offset * 2.0 - 1.0 + 0.5 / numElems;
+  };
+  const getScale = () => {
+    if (imageWidth == -1 || imageHeight == -1) {
+      return Math.max(nrows, ncols);
+    }
+    const rx = (imageWidth * ncols) / window.innerWidth;
+    const ry = (imageHeight * nrows) / window.innerHeight;
+    return Math.max(rx, ry);
+  };
+
+  const scale = getScale();
+  const sx = 1.0 / (window.innerWidth * scale);
+  const dx = getOffset(col, ncols);
+  const sy = 1.0 / (window.innerHeight * scale);
+  const dy = getOffset(row, nrows);
   const mvpMat = new Matrix4();
   // prettier-ignore
   mvpMat.set(sx, 0.0, 0.0, dx,

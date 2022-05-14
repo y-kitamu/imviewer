@@ -28,7 +28,6 @@ import {
 import { WindowOperationButtons } from "./window_operation_buttons";
 
 export const SettingDrawer = (props: SettingDrawerProps) => {
-  console.log("Render SettingDrawer");
   const { isOpen, setIsOpen, gl, images, shaderStem, jsons, canvasWindow } =
     props;
   const [onFocus, setOnFocus] = useState<{ row: number; col: number }>(
@@ -45,7 +44,6 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
     const val = Number(event.target.value);
     if (val != undefined) {
       canvasWindow.onFocus = { ...onFocus, [key]: val };
-      console.log("handleChange");
       setter(canvasWindow.onFocus);
     }
   };
@@ -129,10 +127,8 @@ const ImageSelectors = (props: {
   images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
-  console.log("Render ImageSelectors");
   const { gl, canvasWindow, images } = props;
   const textures = getFocusedImageWidget(canvasWindow)?.textures;
-  console.log(textures);
 
   const getSamplerKeys = () => {
     if (textures != undefined) {
@@ -210,23 +206,25 @@ const WidgetSelectors = (props: {
   images: { [key: string]: HTMLImageElement };
   canvasWindow: CanvasWindow;
 }) => {
-  console.log("Render WidgetSelectors");
   const { gl, jsons, images, canvasWindow } = props;
 
   const labels = Object.keys(jsons)
     .map((key) => {
       return jsons[key].map((schema) => {
-        const [checked, setChecked] = useState(
-          isWidgetDrawing(canvasWindow, schema)
-        );
+        const isDrawing = isWidgetDrawing(canvasWindow, schema);
+        const [checked, setChecked] = useState(isDrawing);
+
+        if (isDrawing != checked) {
+          setChecked(isDrawing);
+        }
 
         const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          setChecked(event.target.checked);
           if (event.target.checked) {
             createWidget(gl, canvasWindow, schema);
           } else {
             deleteWidget(gl, canvasWindow, schema);
           }
+          setChecked(event.target.checked);
         };
 
         return (

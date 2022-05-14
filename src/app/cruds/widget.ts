@@ -62,7 +62,7 @@ export const isWidgetDrawing = (
 ) => {
   const { row, col } = canvasWindow.onFocus;
   for (const widget of canvasWindow.widgets) {
-    if (widget.row.includes(row) && widget.row.includes(col)) {
+    if (widget.row.includes(row) && widget.col.includes(col)) {
       if (schema.schemaId && widget.id.startsWith(schema.schemaId)) {
         return true;
       }
@@ -78,7 +78,7 @@ export const deleteWidget = (
 ) => {
   const { row, col } = canvasWindow.onFocus;
   canvasWindow.widgets = canvasWindow.widgets.filter((widget) => {
-    if (widget.row.includes(row) && widget.row.includes(col)) {
+    if (widget.row.includes(row) && widget.col.includes(col)) {
       if (schema == undefined && widget.partsType == "image") {
         removeDrawable(gl, widget.id);
         return false;

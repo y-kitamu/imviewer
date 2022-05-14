@@ -16,6 +16,7 @@ import {
 import { JsonSchema } from "../../io/types/io";
 import { DEFAULT_SHADERS } from "../../io/constants";
 import { getSamplerNames } from "../../gl/gl";
+import { PartsType } from "../../gl/types/schemas";
 import { SettingDrawerProps } from "../types/props";
 import { CanvasWindow } from "../types/window";
 import {
@@ -112,7 +113,13 @@ export const SettingDrawer = (props: SettingDrawerProps) => {
       </FormControl>
       <Divider />
       <ImageSelectors gl={gl} images={images} canvasWindow={canvasWindow} />
-      <WidgetSelectors
+      <PointSelectors
+        gl={gl}
+        jsons={jsons}
+        images={images}
+        canvasWindow={canvasWindow}
+      />
+      <LineSelectors
         gl={gl}
         jsons={jsons}
         images={images}
@@ -200,7 +207,7 @@ const ImageSelectors = (props: {
   );
 };
 
-const WidgetSelectors = (props: {
+const PointSelectors = (props: {
   gl: WebGL2RenderingContext;
   jsons: { [key: string]: JsonSchema[] };
   images: { [key: string]: HTMLImageElement };
@@ -211,6 +218,9 @@ const WidgetSelectors = (props: {
   const labels = Object.keys(jsons)
     .map((key) => {
       return jsons[key].map((schema) => {
+        if (schema.partsType != "point") {
+          return;
+        }
         const isDrawing = isWidgetDrawing(canvasWindow, schema);
         const [checked, setChecked] = useState(isDrawing);
 
@@ -240,7 +250,147 @@ const WidgetSelectors = (props: {
 
   return (
     <>
-      <Typography>Widgets</Typography>
+      <Typography>{"Points"}</Typography>
+      <FormGroup>{labels}</FormGroup>
+    </>
+  );
+};
+
+const LineSelectors = (props: {
+  gl: WebGL2RenderingContext;
+  jsons: { [key: string]: JsonSchema[] };
+  images: { [key: string]: HTMLImageElement };
+  canvasWindow: CanvasWindow;
+}) => {
+  const { gl, jsons, images, canvasWindow } = props;
+
+  const labels = Object.keys(jsons)
+    .map((key) => {
+      return jsons[key].map((schema, idx) => {
+        if (schema.partsType != "line") {
+          return;
+        }
+        const isDrawing = isWidgetDrawing(canvasWindow, schema);
+        const [checked, setChecked] = useState(isDrawing);
+        const [row0, setRow0] = useState("");
+        const [col0, setCol0] = useState("");
+        const [row1, setRow1] = useState("");
+        const [col1, setCol1] = useState("");
+
+        if (isDrawing != checked) {
+          setChecked(isDrawing);
+        }
+
+        const create = () => {
+          if (row0 != "" && row1 != "" && col0 != "" && col1 != "") {
+            const r0 = Number(row0);
+            const r1 = Number(row1);
+            const c0 = Number(col0);
+            const c1 = Number(col1);
+            if (isDrawing) {
+              deleteWidget(gl, canvasWindow, schema);
+            }
+            createWidget(gl, canvasWindow, schema, [r0, r1], [c0, c1]);
+            setChecked(true);
+          }
+        };
+
+        const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+          if (event.target.checked) {
+            create();
+          } else {
+            deleteWidget(gl, canvasWindow, schema);
+          }
+          setChecked(event.target.checked);
+        };
+
+        const handleChangeSelect = (
+          event: SelectChangeEvent,
+          setter: (val: string) => void
+        ) => {
+          const val = Number(event.target.value);
+          setter(String(val));
+        };
+
+        useEffect(() => {
+          create();
+        }, [row0, col0, row1, col1]);
+
+        const { nrows, ncols } = canvasWindow;
+        const rows = Array.from({ length: nrows }, (_, i) => (
+          <MenuItem key={i} value={i}>
+            {i}
+          </MenuItem>
+        ));
+        const cols = Array.from({ length: ncols }, (_, i) => (
+          <MenuItem key={i} value={i}>
+            {i}
+          </MenuItem>
+        ));
+
+        return (
+          <div key={schema.schemaId!}>
+            <FormControlLabel
+              control={<Checkbox checked={checked} onChange={handleChange} />}
+              label={schema.schemaId!}
+            />
+            <FormControl>
+              <InputLabel id={`select-row0-${idx}`}>Row0</InputLabel>
+              <Select
+                labelId={`select-row0-${idx}`}
+                id="demo-simple-select"
+                value={String(row0)}
+                label="Row0"
+                onChange={(event) => handleChangeSelect(event, setRow0)}
+              >
+                {rows}
+              </Select>
+            </FormControl>
+            <FormControl>
+              <InputLabel id={`select-col0-${idx}`}>Col0</InputLabel>
+              <Select
+                labelId={`select-col0-${idx}`}
+                id="demo-simple-select"
+                value={String(col0)}
+                label="Col0"
+                onChange={(event) => handleChangeSelect(event, setCol0)}
+              >
+                {cols}
+              </Select>
+            </FormControl>
+            <FormControl>
+              <InputLabel id={`select-row1-${idx}`}>Row1</InputLabel>
+              <Select
+                labelId={`select-row1-${idx}`}
+                id="demo-simple-select"
+                value={String(row1)}
+                label="Row0"
+                onChange={(event) => handleChangeSelect(event, setRow1)}
+              >
+                {rows}
+              </Select>
+            </FormControl>
+            <FormControl>
+              <InputLabel id={`select-col1-${idx}`}>Col1</InputLabel>
+              <Select
+                labelId={`select-col1-${idx}`}
+                id="demo-simple-select"
+                value={String(col1)}
+                label="Col0"
+                onChange={(event) => handleChangeSelect(event, setCol1)}
+              >
+                {cols}
+              </Select>
+            </FormControl>
+          </div>
+        );
+      });
+    })
+    .flat();
+
+  return (
+    <>
+      <Typography>{"Lines"}</Typography>
       <FormGroup>{labels}</FormGroup>
     </>
   );

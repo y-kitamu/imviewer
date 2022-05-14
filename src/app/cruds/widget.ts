@@ -16,7 +16,17 @@ export const createWidget = (
     rows = [canvasWindow.onFocus.row];
     cols = [canvasWindow.onFocus.col];
   }
-  const mats = rows.map((row, i) => getMVPMatrix(canvasWindow, row, cols[i]));
+  let mats = [];
+  if (rows.length == 2 && cols.length == 2) {
+    if (rows[0] == rows[1] && cols[0] == cols[1]) {
+      const mat = getMVPMatrix(canvasWindow, rows[0], cols[0]);
+      mats.push(mat, mat);
+    } else {
+      mats = rows.map((row, i) => getMVPMatrix(canvasWindow, row, cols[i]));
+    }
+  } else {
+    mats = rows.map((row, i) => getMVPMatrix(canvasWindow, row, cols[i]));
+  }
   const widget = convertJsonSchemaToWidget(schema, rows, cols, mats);
   canvasWindow.widgets.push(widget);
   createDrawable(gl, widget, {});
@@ -106,7 +116,19 @@ export const updateMVPMatrix = (
   deltaMat: Matrix4
 ) => {
   const mat = getMVPMatrix(canvasWindow);
-  mat[MVP_VARNAME].multiplyMatrices(deltaMat, mat[MVP_VARNAME]);
+  if (!Object.keys(mat).includes(MVP_VARNAME)) {
+    const { row, col } = canvasWindow.onFocus;
+    canvasWindow.widgets.forEach((w, i) => {
+      const rowIdx = w.row.findIndex((r) => row == r);
+      const colIdx = w.col.findIndex((c) => col == c);
+      if (rowIdx >= 0 && rowIdx == colIdx) {
+        mat[MVP_VARNAME] = mat[`${MVP_VARNAME}[${i}]`];
+      }
+    });
+  }
+  if (Object.keys(mat).includes(MVP_VARNAME)) {
+    mat[MVP_VARNAME].multiplyMatrices(deltaMat, mat[MVP_VARNAME]);
+  }
 };
 
 const getMVPMatrix = (
@@ -121,9 +143,11 @@ const getMVPMatrix = (
     col = canvasWindow.onFocus.col;
   }
   // Search widgets already rendered on the target `row` and `col`
-  const mat = canvasWindow.widgets.find(
-    (w) => w.row.includes(row) && w.col.includes(col)
-  )?.mvpMats;
+  const mat = canvasWindow.widgets.find((w) => {
+    const rowIdx = w.row.findIndex((r) => row == r);
+    const colIdx = w.col.findIndex((c) => col == c);
+    return rowIdx >= 0 && rowIdx == colIdx;
+  })?.mvpMats;
 
   // If widgets already rendered are found, return the mvp matrix of the widget.
   if (mat != undefined) {

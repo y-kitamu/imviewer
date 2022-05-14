@@ -1,23 +1,35 @@
 import { PartsType, UniformSchema } from "../../gl/types/schemas";
 import { CanvasWindow } from "../types/window";
+import { Widget } from "../types/widget";
 
 export const updateUniforms = (canvasWindow: CanvasWindow) => {
+  const updateUniform = (widget: Widget, uniforms: UniformSchema[]) => {
+    const targetNames = uniforms.map((uni) => uni.variableName);
+    widget.uniforms = widget.uniforms?.filter(
+      (uni) => !targetNames.includes(uni.variableName)
+    );
+    widget.uniforms?.push(...uniforms);
+  };
+
+  let uniforms: UniformSchema[] = [];
   canvasWindow.widgets.map((widget) => {
     switch (widget.partsType) {
       case "image":
       case "point":
-        const uniforms = updateSimpleUniforms(
+        uniforms = updateSimpleUniforms(
           canvasWindow,
           widget.row[0],
           widget.col[0]
         );
-        const targetNames = uniforms.map((uni) => uni.variableName);
-        widget.uniforms = widget.uniforms?.filter(
-          (uni) => !targetNames.includes(uni.variableName)
-        );
-        widget.uniforms?.push(...uniforms);
+        updateUniform(widget, uniforms);
         break;
       case "line":
+        uniforms = updateSimpleLineUniforms(
+          canvasWindow,
+          widget.row,
+          widget.col
+        );
+        updateUniform(widget, uniforms);
         break;
     }
   });
@@ -46,4 +58,21 @@ const updateSimpleUniforms = (
       data: [right, top],
     },
   ];
+};
+
+const updateSimpleLineUniforms = (
+  canvasWindow: CanvasWindow,
+  rows: number[],
+  cols: number[]
+): UniformSchema[] => {
+  return rows
+    .map((row, idx) => {
+      return updateSimpleUniforms(canvasWindow, row, cols[idx]).map(
+        (schema) => {
+          schema.variableName = `${schema.variableName}[${idx}]`;
+          return schema;
+        }
+      );
+    })
+    .flat();
 };

@@ -107,13 +107,16 @@ const parseShaderImpl = (source: string): Internal.ShaderProperty => {
         });
       }
     } else {
-      uniforms.push({
-        location: Number(match[1]),
-        dataType: match[2],
-        dataTypeSize: getDataTypeSize(match[2]),
-        arrayLength: getArraySize(match[4]),
-        name: match[3],
-      });
+      const dataTypeSize = getDataTypeSize(match[2]);
+      for (let i = 0; i < getArraySize(match[4]); i++) {
+        uniforms.push({
+          location: Number(match[1]) + dataTypeSize * i,
+          dataType: match[2],
+          dataTypeSize,
+          arrayLength: 1,
+          name: `${match[3]}[${i}]`,
+        });
+      }
     }
   }
 

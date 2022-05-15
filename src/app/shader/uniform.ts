@@ -42,7 +42,6 @@ const updateSimpleUniforms = (
   col: number
 ): UniformSchema[] => {
   const { nrows, ncols } = canvasWindow;
-
   const left = (2.0 * col) / ncols - 1.0;
   const right = (2.0 * (col + 1)) / ncols - 1.0;
   const top = 1.0 - (2.0 * row) / nrows;

@@ -6,11 +6,9 @@ uniform mat4 mvp[2];
 
 out vec3 fragColor;
 out vec2 xy;
-flat out int vertexId;
 
 void main() {
     fragColor = aColor;
     gl_Position = mvp[gl_VertexID % 2] * vec4(aPos, 1.0);
     xy = gl_Position.xy;
-    vertexId = gl_VertexID;
 }

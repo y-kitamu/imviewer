@@ -17,15 +17,20 @@ export const createWidget = (
     cols = [canvasWindow.onFocus.col];
   }
   let mats = [];
-  if (rows.length == 2 && cols.length == 2) {
-    if (rows[0] == rows[1] && cols[0] == cols[1]) {
-      const mat = getMVPMatrix(canvasWindow, rows[0], cols[0]);
-      mats.push(mat, mat);
-    } else {
-      mats = rows.map((row, i) => getMVPMatrix(canvasWindow, row, cols[i]));
-    }
+  if (
+    rows.length == 2 &&
+    cols.length == 2 &&
+    rows[0] == rows[1] &&
+    cols[0] == cols[1]
+  ) {
+    const mat = getMVPMatrix(canvasWindow, rows[0], cols[0]);
+    mats.push({ [MVP_VARNAME]: mat }, { [MVP_VARNAME]: mat });
   } else {
-    mats = rows.map((row, i) => getMVPMatrix(canvasWindow, row, cols[i]));
+    mats = rows.map((row, i) => {
+      return {
+        [MVP_VARNAME]: getMVPMatrix(canvasWindow, row, cols[i]),
+      };
+    });
   }
   const widget = convertJsonSchemaToWidget(schema, rows, cols, mats);
   canvasWindow.widgets.push(widget);
@@ -44,12 +49,9 @@ export const createImageWidget = (
 ) => {
   const { row, col } = canvasWindow.onFocus;
   const { width, height } = image;
-  const newWidget = convertImageToWidget(
-    image,
-    row,
-    col,
-    getMVPMatrix(canvasWindow, row, col, width, height)
-  );
+  const newWidget = convertImageToWidget(image, row, col, {
+    [MVP_VARNAME]: getMVPMatrix(canvasWindow, row, col, width, height),
+  });
   const currentWidget = getFocusedImageWidget(canvasWindow);
   if (currentWidget == undefined) {
     newWidget.textures = { [key]: fileBasename };
@@ -116,19 +118,7 @@ export const updateMVPMatrix = (
   deltaMat: Matrix4
 ) => {
   const mat = getMVPMatrix(canvasWindow);
-  if (!Object.keys(mat).includes(MVP_VARNAME)) {
-    const { row, col } = canvasWindow.onFocus;
-    canvasWindow.widgets.forEach((w, i) => {
-      const rowIdx = w.row.findIndex((r) => row == r);
-      const colIdx = w.col.findIndex((c) => col == c);
-      if (rowIdx >= 0 && rowIdx == colIdx) {
-        mat[MVP_VARNAME] = mat[`${MVP_VARNAME}[${i}]`];
-      }
-    });
-  }
-  if (Object.keys(mat).includes(MVP_VARNAME)) {
-    mat[MVP_VARNAME].multiplyMatrices(deltaMat, mat[MVP_VARNAME]);
-  }
+  mat.multiplyMatrices(deltaMat, mat);
 };
 
 const getMVPMatrix = (
@@ -137,21 +127,21 @@ const getMVPMatrix = (
   col: number = -1,
   imageWidth: number = -1,
   imageHeight: number = -1
-): { [key: string]: Matrix4 } => {
+): Matrix4 => {
   if (row == -1 || col == -1) {
     row = canvasWindow.onFocus.row;
     col = canvasWindow.onFocus.col;
   }
   // Search widgets already rendered on the target `row` and `col`
-  const mat = canvasWindow.widgets.find((w) => {
-    const rowIdx = w.row.findIndex((r) => row == r);
-    const colIdx = w.col.findIndex((c) => col == c);
-    return rowIdx >= 0 && rowIdx == colIdx;
-  })?.mvpMats;
-
-  // If widgets already rendered are found, return the mvp matrix of the widget.
-  if (mat != undefined) {
-    return mat;
+  for (const w of canvasWindow.widgets) {
+    const rowIndices = w.row
+      .map((r, i) => (row == r ? i : -1))
+      .filter((val) => val >= 0);
+    for (const idx of rowIndices) {
+      if (w.col[idx] == col) {
+        return w.mvpMats[`${MVP_VARNAME}[${idx}]`];
+      }
+    }
   }
 
   // If widgets already rendered do not exist, create new mvp matrix.
@@ -180,5 +170,5 @@ const getMVPMatrix = (
              0.0, sy, 0.0, dy,
              0.0, 0.0, 1.0, 0.0,
              0.0, 0.0, 0.0, 1.0);
-  return { [MVP_VARNAME]: mvpMat };
+  return mvpMat;
 };

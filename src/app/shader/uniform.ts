@@ -49,11 +49,11 @@ const updateSimpleUniforms = (
 
   return [
     {
-      variableName: "minPos",
+      variableName: "minPos[0]",
       data: [left, bottom],
     },
     {
-      variableName: "maxPos",
+      variableName: "maxPos[0]",
       data: [right, top],
     },
   ];

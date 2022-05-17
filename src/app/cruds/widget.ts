@@ -16,7 +16,7 @@ export const createWidget = (
     rows = [canvasWindow.onFocus.row];
     cols = [canvasWindow.onFocus.col];
   }
-  let mats = [];
+  let mats: { [key: string]: Matrix4 } = {};
   if (
     rows.length == 2 &&
     cols.length == 2 &&
@@ -24,12 +24,11 @@ export const createWidget = (
     cols[0] == cols[1]
   ) {
     const mat = getMVPMatrix(canvasWindow, rows[0], cols[0]);
-    mats.push({ [MVP_VARNAME]: mat }, { [MVP_VARNAME]: mat });
+    mats[`${MVP_VARNAME}[0]`] = mat;
+    mats[`${MVP_VARNAME}[1]`] = mat;
   } else {
-    mats = rows.map((row, i) => {
-      return {
-        [MVP_VARNAME]: getMVPMatrix(canvasWindow, row, cols[i]),
-      };
+    rows.forEach((row, i) => {
+      mats[`${MVP_VARNAME}[${i}]`] = getMVPMatrix(canvasWindow, row, cols[i]);
     });
   }
   const widget = convertJsonSchemaToWidget(schema, rows, cols, mats);
@@ -50,7 +49,7 @@ export const createImageWidget = (
   const { row, col } = canvasWindow.onFocus;
   const { width, height } = image;
   const newWidget = convertImageToWidget(image, row, col, {
-    [MVP_VARNAME]: getMVPMatrix(canvasWindow, row, col, width, height),
+    [`${MVP_VARNAME}[0]`]: getMVPMatrix(canvasWindow, row, col, width, height),
   });
   const currentWidget = getFocusedImageWidget(canvasWindow);
   if (currentWidget == undefined) {

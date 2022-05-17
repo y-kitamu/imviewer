@@ -51,17 +51,13 @@ export const _convertJsonSchemaToLine = (
   schema: JsonSchema,
   row: number[],
   col: number[],
-  mvpMatsArr: { [key: string]: Matrix4 }[]
+  mvpMatsArr: { [key: string]: Matrix4 }
 ): Widget => {
-  if (row.length < 2 || col.length < 2 || mvpMatsArr.length < 2) {
+  if (row.length < 2 || col.length < 2 || Object.keys(mvpMatsArr).length < 2) {
     throw new Error(
       "Invalid argument : length of `row`, `col` and `mvpMatsArr`" +
         " must be equal or greater than 2."
     );
   }
-  const mvpMats = {
-    [MVP_VARNAME + "[0]"]: mvpMatsArr[0][MVP_VARNAME],
-    [MVP_VARNAME + "[1]"]: mvpMatsArr[1][MVP_VARNAME],
-  };
-  return _convertJsonSchemaToWidget(schema, row, col, mvpMats);
+  return _convertJsonSchemaToWidget(schema, row, col, mvpMatsArr);
 };

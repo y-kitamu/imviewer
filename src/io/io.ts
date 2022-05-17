@@ -68,16 +68,16 @@ export const convertJsonSchemaToWidget = (
   schema: JsonSchema,
   row: number[],
   col: number[],
-  mvpMats: { [key: string]: Matrix4 }[]
+  mvpMats: { [key: string]: Matrix4 }
 ): Widget => {
-  if (mvpMats.length == 0) {
+  if (Object.keys(mvpMats).length == 0) {
     throw new Error("`mvpMats` must not be empty array.");
   }
   switch (schema.partsType) {
     case "image":
     case "point":
     case "arrow":
-      return _convertJsonSchemaToWidget(schema, row[0], col[0], mvpMats[0]);
+      return _convertJsonSchemaToWidget(schema, row[0], col[0], mvpMats);
     case "line":
       return _convertJsonSchemaToLine(schema, row, col, mvpMats);
   }

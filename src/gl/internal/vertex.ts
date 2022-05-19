@@ -36,7 +36,7 @@ export const _prepareVertices = (
     }
     let srcIdx = 0;
     let dstIdx = 0;
-    for (let j = 0; j < numElem; j++, dstIdx += numElem) {
+    for (let j = 0; j < numVert; j++, dstIdx += numElem) {
       for (let k = 0; k < elemSize; k++, srcIdx++) {
         array[dstIdx + k + offset] = buffer.data[srcIdx];
       }

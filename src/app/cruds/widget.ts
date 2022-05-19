@@ -161,8 +161,8 @@ const getMVPMatrix = (
   const scale = getScale();
   const sx = 1.0 / (window.innerWidth * scale);
   const dx = getOffset(col, ncols);
-  const sy = 1.0 / (window.innerHeight * scale);
-  const dy = getOffset(row, nrows);
+  const sy = -1.0 / (window.innerHeight * scale);
+  const dy = -getOffset(row, nrows);
   const mvpMat = new Matrix4();
   // prettier-ignore
   mvpMat.set(sx, 0.0, 0.0, dx,
